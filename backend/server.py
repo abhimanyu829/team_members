@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List, Dict, Any
-import os, uuid, bcrypt, jwt, logging, secrets
+import os, uuid, bcrypt, jwt, logging, secrets, random, string
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import requests as http_requests
@@ -137,6 +137,20 @@ def create_refresh_token(user_id: str) -> str:
          "exp": datetime.now(timezone.utc) + timedelta(days=7)},
         JWT_SECRET, algorithm=JWT_ALG
     )
+
+def generate_username(name: str) -> str:
+    parts = name.lower().strip().split()
+    first = parts[0] if parts else "user"
+    last = parts[-1] if len(parts) > 1 else ""
+    base = f"{first}.{last}" if last else first
+    suffix = str(random.randint(100, 999))
+    return base + suffix
+
+def generate_temp_password() -> str:
+    upper = random.choice(string.ascii_uppercase)
+    lower = ''.join(random.choices(string.ascii_lowercase, k=4))
+    digits = ''.join(random.choices(string.digits, k=3))
+    return f"{upper}{lower}@{digits}"
 
 async def get_current_user(request: Request) -> dict:
     # Try JWT access token
@@ -274,6 +288,80 @@ class AIChatRequest(BaseModel):
 
 class GoogleSessionRequest(BaseModel):
     session_id: str
+
+# ─── EXTENDED MODELS ──────────────────────────────────────────────────────────
+class DepartmentWithHOD(BaseModel):
+    name: str
+    description: Optional[str] = ""
+    color: str = "#4F46E5"
+    icon: Optional[str] = "building"
+    status: str = "active"
+    hod_full_name: str
+    hod_email: str
+    hod_username: Optional[str] = None
+    hod_temp_password: Optional[str] = None
+    hod_mobile: Optional[str] = None
+    hod_title: Optional[str] = "Head of Department"
+    hod_bio: Optional[str] = None
+    hod_joining_date: Optional[str] = None
+    hod_linkedin: Optional[str] = None
+    hod_github: Optional[str] = None
+
+class FullUserCreate(BaseModel):
+    full_name: str
+    email: str
+    role: str = "worker"
+    department_id: Optional[str] = None
+    username: Optional[str] = None
+    temp_password: Optional[str] = None
+    mobile_number: Optional[str] = None
+    employee_id: Optional[str] = None
+    professional_title: Optional[str] = None
+    reporting_manager_id: Optional[str] = None
+    joining_date: Optional[str] = None
+    picture: Optional[str] = None
+    skills: List[str] = []
+    bio: Optional[str] = None
+    experience_level: Optional[str] = None
+    employment_type: str = "full_time"
+    shift_timing: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    github_url: Optional[str] = None
+    instagram_id: Optional[str] = None
+    facebook_id: Optional[str] = None
+    portfolio_url: Optional[str] = None
+    address: Optional[str] = None
+    emergency_contact: Optional[str] = None
+    is_active: bool = True
+
+class UserUpdateFull(BaseModel):
+    name: Optional[str] = None
+    role: Optional[str] = None
+    department_id: Optional[str] = None
+    picture: Optional[str] = None
+    mobile_number: Optional[str] = None
+    professional_title: Optional[str] = None
+    reporting_manager_id: Optional[str] = None
+    joining_date: Optional[str] = None
+    skills: Optional[List[str]] = None
+    bio: Optional[str] = None
+    experience_level: Optional[str] = None
+    employment_type: Optional[str] = None
+    shift_timing: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    github_url: Optional[str] = None
+    instagram_id: Optional[str] = None
+    facebook_id: Optional[str] = None
+    portfolio_url: Optional[str] = None
+    address: Optional[str] = None
+    emergency_contact: Optional[str] = None
+
+class TransferWorker(BaseModel):
+    new_department_id: str
+    new_reporting_manager_id: Optional[str] = None
+
+class ResetPasswordReq(BaseModel):
+    new_password: Optional[str] = None
 
 # ─── AUTH ROUTES ──────────────────────────────────────────────────────────────
 @api_router.post("/auth/register")
@@ -854,6 +942,135 @@ async def ai_history(current_user: dict = Depends(auth_required)):
         {"user_id": current_user["user_id"]}, {"_id": 0}
     ).sort("created_at", 1).limit(30).to_list(30)
     return history
+
+# ─── HIERARCHY CREATION ENDPOINTS ────────────────────────────────────────────
+@api_router.post("/departments/create-with-hod")
+async def create_dept_with_hod(data: DepartmentWithHOD, current_user: dict = Depends(auth_required)):
+    if current_user["role"] != "super_admin":
+        raise HTTPException(403, "Super admin only")
+    email = data.hod_email.lower().strip()
+    if await db.users.find_one({"email": email}):
+        raise HTTPException(400, f"Email {email} already registered")
+    username = data.hod_username or generate_username(data.hod_full_name)
+    temp_password = data.hod_temp_password or generate_temp_password()
+    # Ensure username unique
+    existing_uname = await db.users.find_one({"username": username})
+    if existing_uname:
+        username = username + str(random.randint(1, 99))
+    dept_id = f"dept_{uuid.uuid4().hex[:10]}"
+    now = datetime.now(timezone.utc).isoformat()
+    dept = {
+        "department_id": dept_id, "name": data.name, "description": data.description,
+        "color": data.color, "icon": data.icon, "status": data.status, "created_at": now
+    }
+    await db.departments.insert_one({**dept})
+    hod_id = f"user_{uuid.uuid4().hex[:12]}"
+    count = await db.users.count_documents({})
+    hod_user = {
+        "user_id": hod_id, "email": email, "name": data.hod_full_name,
+        "username": username, "password_hash": hash_password(temp_password),
+        "role": "hod", "department_id": dept_id, "picture": "",
+        "mobile_number": data.hod_mobile, "professional_title": data.hod_title,
+        "bio": data.hod_bio, "linkedin_url": data.hod_linkedin,
+        "github_url": data.hod_github, "joining_date": data.hod_joining_date,
+        "employee_id": f"EMP{str(count+1).zfill(4)}", "skills": [],
+        "is_active": True, "is_temp_password": True,
+        "created_by": current_user["user_id"], "created_at": now
+    }
+    await db.users.insert_one({**hod_user})
+    await db.departments.update_one({"department_id": dept_id}, {"$set": {"hod_id": hod_id}})
+    dept["hod_id"] = hod_id
+    hod_out = {k: v for k, v in hod_user.items() if k not in ["_id", "password_hash"]}
+    return {
+        "department": {**dept, "_id": None},
+        "hod": hod_out,
+        "credentials": {"username": username, "temp_password": temp_password, "email": email}
+    }
+
+@api_router.post("/users/create-full")
+async def create_full_user(data: FullUserCreate, current_user: dict = Depends(auth_required)):
+    if current_user["role"] == "worker":
+        raise HTTPException(403, "Workers cannot create users")
+    if current_user["role"] == "hod":
+        if data.role not in ("worker",):
+            raise HTTPException(403, "HODs can only create workers")
+        if data.department_id and data.department_id != current_user.get("department_id"):
+            raise HTTPException(403, "HODs can only create users in their own department")
+        data.department_id = current_user.get("department_id")
+    email = data.email.lower().strip()
+    if await db.users.find_one({"email": email}):
+        raise HTTPException(400, "Email already registered")
+    username = data.username or generate_username(data.full_name)
+    existing_uname = await db.users.find_one({"username": username})
+    if existing_uname:
+        username = username + str(random.randint(1, 99))
+    temp_password = data.temp_password or generate_temp_password()
+    count = await db.users.count_documents({})
+    employee_id = data.employee_id or f"EMP{str(count+1).zfill(4)}"
+    now = datetime.now(timezone.utc).isoformat()
+    user = {
+        "user_id": f"user_{uuid.uuid4().hex[:12]}", "email": email,
+        "name": data.full_name, "username": username,
+        "password_hash": hash_password(temp_password), "role": data.role,
+        "department_id": data.department_id, "picture": data.picture or "",
+        "mobile_number": data.mobile_number, "employee_id": employee_id,
+        "professional_title": data.professional_title,
+        "reporting_manager_id": data.reporting_manager_id,
+        "joining_date": data.joining_date, "skills": data.skills, "bio": data.bio,
+        "experience_level": data.experience_level, "employment_type": data.employment_type,
+        "shift_timing": data.shift_timing, "linkedin_url": data.linkedin_url,
+        "github_url": data.github_url, "instagram_id": data.instagram_id,
+        "facebook_id": data.facebook_id, "portfolio_url": data.portfolio_url,
+        "address": data.address, "emergency_contact": data.emergency_contact,
+        "is_active": data.is_active, "is_temp_password": True,
+        "created_by": current_user["user_id"], "created_at": now
+    }
+    await db.users.insert_one({**user})
+    user_out = {k: v for k, v in user.items() if k not in ["_id", "password_hash"]}
+    return {"user": user_out, "credentials": {"username": username, "temp_password": temp_password, "email": email}}
+
+@api_router.put("/users/{user_id}/update-full")
+async def update_user_full(user_id: str, data: UserUpdateFull, current_user: dict = Depends(auth_required)):
+    if current_user["user_id"] != user_id and current_user["role"] not in ["super_admin", "hod"]:
+        raise HTTPException(403, "Forbidden")
+    update = {k: v for k, v in data.model_dump().items() if v is not None}
+    if update:
+        await db.users.update_one({"user_id": user_id}, {"$set": update})
+    return await db.users.find_one({"user_id": user_id}, {"_id": 0, "password_hash": 0})
+
+@api_router.put("/users/{user_id}/suspend")
+async def suspend_user(user_id: str, current_user: dict = Depends(auth_required)):
+    if current_user["role"] not in ["super_admin", "hod"]:
+        raise HTTPException(403, "Forbidden")
+    user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(404, "User not found")
+    if current_user["role"] == "hod" and user.get("department_id") != current_user.get("department_id"):
+        raise HTTPException(403, "Can only manage users in your department")
+    new_status = not user.get("is_active", True)
+    await db.users.update_one({"user_id": user_id}, {"$set": {"is_active": new_status}})
+    return {"user_id": user_id, "is_active": new_status}
+
+@api_router.put("/users/{user_id}/transfer")
+async def transfer_worker(user_id: str, data: TransferWorker, current_user: dict = Depends(auth_required)):
+    if current_user["role"] != "super_admin":
+        raise HTTPException(403, "Super admin only")
+    update = {"department_id": data.new_department_id}
+    if data.new_reporting_manager_id:
+        update["reporting_manager_id"] = data.new_reporting_manager_id
+    await db.users.update_one({"user_id": user_id}, {"$set": update})
+    return await db.users.find_one({"user_id": user_id}, {"_id": 0, "password_hash": 0})
+
+@api_router.post("/users/{user_id}/reset-password")
+async def reset_user_password(user_id: str, data: ResetPasswordReq, current_user: dict = Depends(auth_required)):
+    if current_user["role"] != "super_admin":
+        raise HTTPException(403, "Super admin only")
+    new_pwd = data.new_password or generate_temp_password()
+    await db.users.update_one(
+        {"user_id": user_id},
+        {"$set": {"password_hash": hash_password(new_pwd), "is_temp_password": True}}
+    )
+    return {"new_password": new_pwd}
 
 # ─── WEBSOCKET ────────────────────────────────────────────────────────────────
 @app.websocket("/api/ws/{user_id}")
