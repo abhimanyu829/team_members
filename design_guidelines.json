@@ -1,0 +1,104 @@
+{
+  "project_name": "WorkOS Enterprise Platform (TeamOS MVP)",
+  "theme": "light",
+  "archetype": "Archetype 4: Swiss & High-Contrast (Adapted for Enterprise)",
+  "emotion_and_tone": "Professional, authoritative, clean, reliable, modern enterprise.",
+  "colors": {
+    "background": "#FAFAFA",
+    "surface": "#FFFFFF",
+    "border": "#E4E4E7",
+    "primary": "#4F46E5",
+    "primary_hover": "#4338CA",
+    "text_primary": "#09090B",
+    "text_secondary": "#71717A",
+    "success": "#16A34A",
+    "warning": "#D97706",
+    "error": "#DC2626",
+    "tailwind_classes": {
+      "app_bg": "bg-zinc-50",
+      "card_bg": "bg-white",
+      "primary_btn": "bg-indigo-600 hover:bg-indigo-700 text-white",
+      "text_main": "text-zinc-950",
+      "text_muted": "text-zinc-500",
+      "border_main": "border-zinc-200"
+    }
+  },
+  "typography": {
+    "fonts": {
+      "headings": "Outfit, sans-serif",
+      "body": "IBM Plex Sans, sans-serif"
+    },
+    "rules": {
+      "h1": "text-4xl sm:text-5xl font-semibold tracking-tight text-zinc-950",
+      "h2": "text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-950",
+      "h3": "text-xl sm:text-2xl font-medium tracking-tight text-zinc-900",
+      "h4": "text-lg sm:text-xl font-medium text-zinc-900",
+      "body": "text-base leading-relaxed text-zinc-700",
+      "small": "text-sm text-zinc-500",
+      "labels": "text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500"
+    }
+  },
+  "spacing_and_layout": {
+    "philosophy": "Generous Spacing Philosophy. Use 2-3x more spacing than typical designs to give the enterprise UI breathing room.",
+    "containers": "Cards and containers with borders MUST have internal padding of p-6 or p-8 to prevent text collision.",
+    "dashboard_grid": "Mode B: The 'Control Room' Grid. grid-cols-1 md:grid-cols-3 lg:grid-cols-4. Use tight gaps (gap-4 or gap-6).",
+    "alignment": "Left-align dense content, tables, and paragraphs. Only center-align empty states or specific login modal contents.",
+    "navigation": "Fixed left sidebar or top sticky header (z-50) with solid white background and bottom border."
+  },
+  "surface_strategies": {
+    "cards": "Flat background, 1px subtle border (border-zinc-200), very subtle shadow (shadow-sm), rounded-lg.",
+    "header": "Solid white background (bg-white) with 1px bottom border (border-zinc-200) or crystal glassmorphism (bg-white/80 backdrop-blur-xl border-b border-zinc-200).",
+    "interactive": "Hover states must have slight lift (-translate-y-0.5) and deeper shadow (shadow-md). Button hover states must lighten or darken the primary color visibly."
+  },
+  "components": {
+    "strategy": "Use Shadcn UI for all interactive elements (Tables, Dropdowns, Dialogs, Tabs, Cards, Inputs). Do NOT build these from scratch. heavily customize the spacing and borders to match the Swiss Enterprise aesthetic.",
+    "charts": "Use Recharts (via Shadcn chart components). Ensure accessible, high-contrast color palettes for data visualization (Indigo, Sky, Teal, Amber).",
+    "forms": "Use Shadcn Input, Select, and Form components. Left-aligned labels, generous padding."
+  },
+  "icons_and_assets": {
+    "icon_library": "lucide-react (Standard, already installed)",
+    "usage": "Use icons to support labels, not replace them. Keep stroke width consistent (usually 1.5 or 2)."
+  },
+  "media_urls": [
+    {
+      "category": "login_background",
+      "description": "Abstract geometric shapes in light silvery grey and deep indigo for the login page hero background.",
+      "url": "https://static.prod-images.emergentagent.com/jobs/381d2b88-3470-44ef-8350-d557ffbb4421/images/31075eb99479da2e01383d85eab170a4fc20a7e0b49714353fe0085ffa7608b8.png"
+    },
+    {
+      "category": "empty_state_tasks",
+      "description": "Clean line-art empty state for tasks/kanban when no items exist.",
+      "url": "https://static.prod-images.emergentagent.com/jobs/381d2b88-3470-44ef-8350-d557ffbb4421/images/cb8cf50e3250c035d029b9a8ac3d216ba24268a8e2fdb30aa9eb2c6495a41006.png"
+    },
+    {
+      "category": "avatar_worker_1",
+      "description": "Professional headshot for Worker profile.",
+      "url": "https://images.unsplash.com/photo-1767175620484-1ed37931a0d1?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNTl8MHwxfHNlYXJjaHwzfHxwcm9mZXNzaW9uYWwlMjBoZWFkc2hvdCUyMHBvcnRyYWl0JTIwbmV1dHJhbCUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzc1NjMzNzkzfDA&ixlib=rb-4.1.0&q=85"
+    },
+    {
+      "category": "avatar_hod_1",
+      "description": "Professional headshot for HOD profile.",
+      "url": "https://images.unsplash.com/photo-1758600587839-56ba05596c69?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNTl8MHwxfHNlYXJjaHw0fHxwcm9mZXNzaW9uYWwlMjBoZWFkc2hvdCUyMHBvcnRyYWl0JTIwbmV1dHJhbCUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzc1NjMzNzkzfDA&ixlib=rb-4.1.0&q=85"
+    },
+    {
+      "category": "avatar_superadmin",
+      "description": "Professional headshot for Super Admin profile.",
+      "url": "https://images.pexels.com/photos/35129364/pexels-photo-35129364.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    }
+  ],
+  "accessibility_and_testing": {
+    "contrast": "Ensure all text meets minimum 4.5:1 ratio against backgrounds. Use text-zinc-950 for primary text.",
+    "testing_attributes": "All interactive elements (buttons, links, form inputs, tabs) MUST include a `data-testid` attribute (e.g., `data-testid=\"login-submit-button\"`).",
+    "motion": "Respect prefers-reduced-motion. Use smooth, subtle transitions (transition-all duration-200 ease-in-out)."
+  },
+  "instructions_to_main_agent": [
+    "Install and configure Outfit and IBM Plex Sans from Google Fonts in index.html or global css.",
+    "DO NOT use Inter for any text. Ensure Tailwind config overrides sans family with IBM Plex Sans.",
+    "Build the dashboard layouts using the Control Room grid paradigm: grid-cols-1 md:grid-cols-3 lg:grid-cols-4 with strict h-full card heights.",
+    "Use Shadcn UI for all major interactive components. Override default Shadcn radii if necessary to enforce a slightly sharper, enterprise feel (rounded-md or rounded-lg, not overly pill-shaped).",
+    "Implement real-time or simulated data in Recharts with the Indigo/Blue/Zinc color palette.",
+    "For the Kanban board, use distinct visual columns (bg-zinc-100/50 rounded-lg p-4) with draggable cards (bg-white shadow-sm border border-zinc-200).",
+    "The AI Copilot sidebar should feature a distinct background (e.g., bg-indigo-50/30) to separate it from the main operational workspace.",
+    "Always use the provided media_urls. Do not use random placeholder services."
+  ]
+}
