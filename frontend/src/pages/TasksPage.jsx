@@ -222,7 +222,7 @@ export default function TasksPage() {
 
       {/* Task Detail Panel */}
       {selectedTask && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-start justify-end p-4">
+        <div className="fixed inset-0 bg-black/40 z-40 flex items-start justify-end p-4" onClick={(e) => { if (e.target === e.currentTarget) setSelectedTask(null); }}>
           <div className="bg-white rounded-2xl w-full max-w-md h-full overflow-y-auto shadow-xl p-6 flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <span className={`text-xs font-semibold px-2 py-1 rounded border ${PRIORITY_STYLE[selectedTask.priority]}`}>

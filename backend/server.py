@@ -826,13 +826,17 @@ Help with task management, team coordination, productivity advice, and workspace
 Be concise (2-3 sentences max per response), professional, and actionable.
 Always provide specific, practical recommendations."""
 
-    chat = LlmChat(
-        api_key=EMERGENT_KEY,
-        session_id=f"workos_{current_user['user_id']}",
-        system_message=system_msg
-    ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+    try:
+        chat = LlmChat(
+            api_key=EMERGENT_KEY,
+            session_id=f"workos_{current_user['user_id']}",
+            system_message=system_msg
+        ).with_model("anthropic", "claude-sonnet-4-5-20250929")
 
-    response = await chat.send_message(UserMessage(text=data.message))
+        response = await chat.send_message(UserMessage(text=data.message))
+    except Exception as e:
+        logger.error(f"AI chat error: {e}")
+        raise HTTPException(503, f"AI service temporarily unavailable. Please try again shortly.")
 
     # Save to history
     await db.ai_chats.insert_one({
