@@ -11,6 +11,7 @@ import TasksPage from "@/pages/TasksPage";
 import FilesPage from "@/pages/FilesPage";
 import MeetingsPage from "@/pages/MeetingsPage";
 import SettingsPage from "@/pages/SettingsPage";
+import UsersPage from "@/pages/UsersPage";
 
 function LoadingSpinner() {
   return (
@@ -85,6 +86,11 @@ function AppRouter() {
       <Route path="/settings" element={
         <ProtectedRoute>
           <SettingsPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/users" element={
+        <ProtectedRoute roles={["super_admin", "hod"]}>
+          <UsersPage />
         </ProtectedRoute>
       } />
       <Route path="*" element={<Navigate to="/" replace />} />

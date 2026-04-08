@@ -72,7 +72,17 @@ See /app/memory/test_credentials.md
 - [x] Meeting calendar
 - [x] Notifications
 
-### P1 (Next Phase)
+### P1 (Phase 2 — Done Feb 2026)
+- [x] Team Members page (`/users`) — role-filtered member list with search, dept filter, status filter
+- [x] `CreateDepartmentModal` — 2-step wizard: dept details + HOD profile + credential popup with copy buttons
+- [x] `CreateUserModal` — tabbed form (Account / Professional / Social / Personal) + credential popup
+- [x] `UserProfileDrawer` — slide-in panel with full profile, suspend/activate, reset-password, transfer
+- [x] New backend endpoints: `create-with-hod`, `create-full`, `suspend`, `transfer`, `reset-password`
+- [x] Role guards: HODs can only create workers in their own department
+- [x] Sidebar "Team Members" link for super_admin + hod roles
+- [x] "New Department" button (super_admin only) on Team Members page
+
+### P2 (Next Phase)
 - [ ] Sprint velocity charts
 - [ ] Task DAG (dependencies/blockers)
 - [ ] HOD-Worker direct messaging

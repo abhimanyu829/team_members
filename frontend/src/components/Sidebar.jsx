@@ -8,6 +8,7 @@ import {
 const roleNavItems = {
   super_admin: [
     { to: "/admin", icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/users", icon: Users, label: "Team Members" },
     { to: "/tasks", icon: FolderKanban, label: "All Tasks" },
     { to: "/meetings", icon: Calendar, label: "Meetings" },
     { to: "/files", icon: FolderOpen, label: "Files" },
@@ -15,6 +16,7 @@ const roleNavItems = {
   ],
   hod: [
     { to: "/hod", icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/users", icon: Users, label: "Team Members" },
     { to: "/tasks", icon: FolderKanban, label: "Tasks" },
     { to: "/meetings", icon: Calendar, label: "Meetings" },
     { to: "/files", icon: FolderOpen, label: "Files" },
