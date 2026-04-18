@@ -23,6 +23,8 @@ export default function UserProfileDrawer({ userId, onClose, onUpdate }) {
   const [showTransfer, setShowTransfer] = useState(false);
   const [newDeptId, setNewDeptId] = useState("");
   const [resetedPwd, setResetedPwd] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({});
 
   useEffect(() => {
     Promise.all([
@@ -30,11 +32,24 @@ export default function UserProfileDrawer({ userId, onClose, onUpdate }) {
       api.get("/api/departments"),
     ]).then(([userRes, deptsRes]) => {
       setProfile(userRes.data);
+      setEditForm(userRes.data);
       setDepts(deptsRes.data);
       setNewDeptId(userRes.data.department_id || "");
     }).catch((e) => setError(formatError(e)))
       .finally(() => setLoading(false));
   }, [userId]);
+
+  const handleSave = async () => {
+    setActionLoading("save");
+    try {
+      const { data } = await api.put(`/api/users/${userId}/update-full`, editForm);
+      setProfile(data);
+      setEditForm(data);
+      setIsEditing(false);
+      onUpdate?.();
+    } catch (e) { setError(formatError(e)); }
+    finally { setActionLoading(""); }
+  };
 
   const handleSuspend = async () => {
     setActionLoading("suspend");
@@ -80,10 +95,25 @@ export default function UserProfileDrawer({ userId, onClose, onUpdate }) {
         style={{ fontFamily: "IBM Plex Sans, sans-serif" }}>
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 flex-shrink-0">
-          <h2 className="text-base font-semibold text-zinc-900" style={{ fontFamily: "Outfit, sans-serif" }}>User Profile</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-zinc-100 transition-colors">
-            <X className="w-4 h-4 text-zinc-400" />
-          </button>
+          <div className="flex items-center gap-2">
+            <h2 className="text-base font-semibold text-zinc-900" style={{ fontFamily: "Outfit, sans-serif" }}>User Profile</h2>
+            {canManage && !isEditing && (
+              <button onClick={() => setIsEditing(true)} className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded uppercase tracking-wider transition-colors ml-2">Edit</button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {isEditing && (
+              <button onClick={handleSave} disabled={actionLoading === "save"} className="bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded hover:bg-indigo-700 transition-all disabled:opacity-50">
+                {actionLoading === "save" ? "Saving..." : "Save Changes"}
+              </button>
+            )}
+            {isEditing && (
+              <button onClick={() => { setIsEditing(false); setEditForm(profile); }} className="text-[10px] font-bold text-zinc-400 hover:text-zinc-600 px-2 py-1">Cancel</button>
+            )}
+            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-zinc-100 transition-colors">
+              <X className="w-4 h-4 text-zinc-400" />
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -128,15 +158,21 @@ export default function UserProfileDrawer({ userId, onClose, onUpdate }) {
             <div className="px-5 py-4 border-b border-zinc-50 space-y-2.5">
               <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-2">Contact</p>
               {[
-                { icon: Mail, value: profile.email, label: "Email" },
-                { icon: Phone, value: profile.mobile_number, label: "Mobile" },
-                { icon: MapPin, value: profile.address, label: "Address" },
-              ].filter(({ value }) => value).map(({ icon: Icon, value, label }) => (
+                { icon: Mail, value: profile.email, label: "Email", key: "email", readonly: true },
+                { icon: Phone, value: profile.mobile_number, label: "Mobile", key: "mobile_number" },
+                { icon: MapPin, value: profile.address, label: "Address", key: "address" },
+                { icon: AlertCircle, value: profile.emergency_contact, label: "Emergency Contact", key: "emergency_contact" },
+              ].map(({ icon: Icon, value, label, key, readonly }) => (
                 <div key={label} className="flex items-start gap-2.5">
                   <Icon className="w-4 h-4 text-zinc-400 mt-0.5 flex-shrink-0" />
-                  <div>
+                  <div className="flex-1">
                     <p className="text-[10px] text-zinc-400">{label}</p>
-                    <p className="text-sm text-zinc-700">{value}</p>
+                    {isEditing && !readonly ? (
+                      <input value={editForm[key] || ""} onChange={(e) => setEditForm({...editForm, [key]: e.target.value})}
+                        className="w-full text-sm text-zinc-700 border-b border-zinc-200 focus:border-indigo-500 focus:outline-none py-0.5" />
+                    ) : (
+                      <p className="text-sm text-zinc-700">{value || "—"}</p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -150,6 +186,7 @@ export default function UserProfileDrawer({ userId, onClose, onUpdate }) {
                 { icon: Calendar, label: "Joining Date", value: profile.joining_date },
                 { icon: User, label: "Experience Level", value: profile.experience_level },
                 { icon: Calendar, label: "Shift Timing", value: profile.shift_timing },
+                { icon: Shield, label: "Reporting Manager ID", value: profile.reporting_manager_id },
               ].filter(({ value }) => value).map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex items-start gap-2.5">
                   <Icon className="w-4 h-4 text-zinc-400 mt-0.5 flex-shrink-0" />
@@ -176,6 +213,41 @@ export default function UserProfileDrawer({ userId, onClose, onUpdate }) {
                 </div>
               )}
             </div>
+
+            {/* Credentials — Super Admin Only */}
+            {isAdmin && (
+              <div className="px-5 py-4 border-b border-zinc-50 space-y-2.5">
+                <div className="flex items-center gap-2 mb-2">
+                  <Shield className="w-3.5 h-3.5 text-indigo-500" />
+                  <p className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider">Account Credentials (Admin View)</p>
+                </div>
+                <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3 space-y-2">
+                  <div>
+                    <p className="text-[10px] text-indigo-400 mb-0.5">Username</p>
+                    {isEditing ? (
+                      <input value={editForm.username || ""} onChange={(e) => setEditForm({...editForm, username: e.target.value})}
+                        className="w-full text-sm font-mono font-semibold text-indigo-900 bg-transparent border-b border-indigo-200 focus:outline-none" />
+                    ) : (
+                      <p className="text-sm font-mono font-semibold text-indigo-900">{profile.username || profile.email?.split("@")[0] || "—"}</p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-indigo-400 mb-0.5">Email (Login)</p>
+                    <p className="text-sm font-mono text-indigo-800">{profile.email || "—"}</p>
+                  </div>
+                  <div className="pt-1 border-t border-indigo-100">
+                    <p className="text-[10px] text-indigo-400 mb-1">Password</p>
+                    {isEditing ? (
+                      <input type="password" placeholder="Set new password" onChange={(e) => setEditForm({...editForm, password: e.target.value})}
+                        className="w-full text-sm bg-transparent border-b border-indigo-200 focus:outline-none text-indigo-900" />
+                    ) : (
+                      <p className="text-xs text-indigo-600 italic">Stored as a hash — use Reset Password below to generate a new temporary password.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
 
             {/* Social */}
             {(profile.linkedin_url || profile.github_url || profile.portfolio_url) && (
@@ -207,17 +279,19 @@ export default function UserProfileDrawer({ userId, onClose, onUpdate }) {
               <div className="px-5 py-4 space-y-3">
                 <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-3">Account Actions</p>
 
-                {/* Suspend/Activate */}
-                <button data-testid={`suspend-user-${userId}`} onClick={handleSuspend}
-                  disabled={actionLoading === "suspend"}
-                  className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium border transition-all ${
-                    profile.is_active
-                      ? "border-red-200 text-red-600 hover:bg-red-50"
-                      : "border-emerald-200 text-emerald-600 hover:bg-emerald-50"
-                  }`}>
-                  {actionLoading === "suspend" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
-                  {profile.is_active ? "Suspend Account" : "Activate Account"}
-                </button>
+                {/* Suspend/Activate (Super Admin only) */}
+                {isAdmin && (
+                  <button data-testid={`suspend-user-${userId}`} onClick={handleSuspend}
+                    disabled={actionLoading === "suspend"}
+                    className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium border transition-all ${
+                      profile.is_active
+                        ? "border-red-200 text-red-600 hover:bg-red-50"
+                        : "border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+                    }`}>
+                    {actionLoading === "suspend" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
+                    {profile.is_active ? "Suspend Account" : "Activate Account"}
+                  </button>
+                )}
 
                 {/* Reset Password (admin only) */}
                 {isAdmin && (

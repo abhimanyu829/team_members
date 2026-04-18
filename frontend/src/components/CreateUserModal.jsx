@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import api, { formatError } from "@/utils/api";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  X, RefreshCw, Eye, EyeOff, Check, Copy, CheckCircle2, Plus, Trash2
+  X, RefreshCw, Eye, EyeOff, Check, Copy, CheckCircle2, Plus, Trash2,
+  Camera, Loader2
 } from "lucide-react";
 
 function genUsername(name) {
@@ -41,6 +42,25 @@ export default function CreateUserModal({ onClose, onSuccess, defaultRole, lockD
   const [copied, setCopied] = useState({});
   const [result, setResult] = useState(null);
   const [skillInput, setSkillInput] = useState("");
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingPhoto(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const { data } = await api.post("/api/files/upload?is_profile=true", formData);
+      set("picture", data.file_id);
+    } catch (err) {
+      setError("Failed to upload photo. Please try again.");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   const [form, setForm] = useState({
     full_name: "", email: "", username: "", temp_password: genPassword(),
@@ -178,6 +198,31 @@ export default function CreateUserModal({ onClose, onSuccess, defaultRole, lockD
               {/* TAB: Account */}
               {tab === "account" && (
                 <div className="grid grid-cols-2 gap-4">
+                  {/* Photo Upload */}
+                  <div className="col-span-2 flex items-center gap-4 mb-4 pb-4 border-b border-zinc-50">
+                    <div className="relative group">
+                      <div className="w-16 h-16 rounded-2xl bg-zinc-100 border-2 border-dashed border-zinc-200 flex flex-col items-center justify-center text-zinc-400 overflow-hidden group-hover:border-indigo-400 group-hover:bg-indigo-50 transition-all">
+                        {form.picture ? (
+                          <img src={form.picture.startsWith('http') ? form.picture : `/api/files/${form.picture}/download`} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <>
+                            <Camera className="w-5 h-5 mb-1" />
+                            <span className="text-[10px] font-medium">Photo</span>
+                          </>
+                        )}
+                      </div>
+                      <input type="file" accept="image/*" onChange={handlePhotoUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
+                      {uploadingPhoto && (
+                        <div className="absolute inset-0 bg-white/60 flex items-center justify-center rounded-2xl">
+                          <Loader2 className="w-5 h-5 text-indigo-600 animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-zinc-700">Profile Photo</p>
+                      <p className="text-[10px] text-zinc-400 mt-0.5">Click to upload. PNG/JPG max 2MB.</p>
+                    </div>
+                  </div>
                   <div className="col-span-2 md:col-span-1">
                     <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Full Name *</label>
                     <input data-testid="user-name-input" required value={form.full_name}

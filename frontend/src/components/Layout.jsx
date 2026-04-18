@@ -6,7 +6,7 @@ import NotificationsPanel from "@/components/NotificationsPanel";
 import api from "@/utils/api";
 import { Bell, Sparkles } from "lucide-react";
 
-export default function Layout({ children }) {
+export default function Layout({ children, fullBleed = false }) {
   const { user, getWS } = useAuth();
   const [showAI, setShowAI] = useState(false);
   const [showNotifs, setShowNotifs] = useState(false);
@@ -108,8 +108,12 @@ export default function Layout({ children }) {
 
             {/* User avatar */}
             <div className="flex items-center gap-2 pl-2 border-l border-zinc-200">
-              <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-semibold">
-                {user?.name?.[0]?.toUpperCase() || "U"}
+              <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-semibold overflow-hidden">
+                {user?.picture ? (
+                  <img src={user.picture.startsWith('http') ? user.picture : `/api/files/${user.picture}/download`} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  user?.name?.[0]?.toUpperCase() || "U"
+                )}
               </div>
               <div className="hidden md:block">
                 <p className="text-xs font-semibold text-zinc-900">{user?.name}</p>
@@ -121,7 +125,7 @@ export default function Layout({ children }) {
 
         {/* Content + AI Panel */}
         <div className="flex flex-1 overflow-hidden">
-          <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+          <main className={`flex-1 ${fullBleed ? "overflow-hidden" : "overflow-y-auto p-4 lg:p-6"}`}>
             {children}
           </main>
           {showAI && (

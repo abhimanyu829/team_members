@@ -8,6 +8,9 @@ import {
 const roleNavItems = {
   super_admin: [
     { to: "/admin", icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/war-room", icon: Briefcase, label: "Ideation Point" },
+    { to: "/boardroom", icon: BarChart3, label: "Control Room" },
+    { to: "/chat", icon: Building2, label: "Messages" },
     { to: "/users", icon: Users, label: "Team Members" },
     { to: "/tasks", icon: FolderKanban, label: "All Tasks" },
     { to: "/meetings", icon: Calendar, label: "Meetings" },
@@ -16,6 +19,9 @@ const roleNavItems = {
   ],
   hod: [
     { to: "/hod", icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/war-room", icon: Briefcase, label: "Ideation Point" },
+    { to: "/boardroom", icon: BarChart3, label: "Control Room" },
+    { to: "/chat", icon: Building2, label: "Communications" },
     { to: "/users", icon: Users, label: "Team Members" },
     { to: "/tasks", icon: FolderKanban, label: "Tasks" },
     { to: "/meetings", icon: Calendar, label: "Meetings" },
@@ -24,6 +30,8 @@ const roleNavItems = {
   ],
   worker: [
     { to: "/worker", icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/boardroom", icon: BarChart3, label: "Control Room" },
+    { to: "/chat", icon: Building2, label: "Team Chat" },
     { to: "/tasks", icon: FolderKanban, label: "My Tasks" },
     { to: "/meetings", icon: Calendar, label: "Meetings" },
     { to: "/files", icon: FolderOpen, label: "Files" },

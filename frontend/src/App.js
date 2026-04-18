@@ -12,6 +12,9 @@ import FilesPage from "@/pages/FilesPage";
 import MeetingsPage from "@/pages/MeetingsPage";
 import SettingsPage from "@/pages/SettingsPage";
 import UsersPage from "@/pages/UsersPage";
+import ChatHubPage from "@/pages/ChatHubPage";
+import WarRoomPage from "@/pages/WarRoomPage";
+import BoardroomPage from "@/pages/BoardroomPage";
 
 function LoadingSpinner() {
   return (
@@ -31,14 +34,14 @@ function DashboardRedirect() {
   return <Navigate to={routes[user.role] || "/worker"} replace />;
 }
 
-function ProtectedRoute({ children, roles }) {
+function ProtectedRoute({ children, roles, fullBleed = false }) {
   const { user, loading } = useAuth();
   if (loading) return <LoadingSpinner />;
   if (!user) return <Navigate to="/login" replace />;
   if (roles && !roles.includes(user.role)) {
     return <Navigate to={user.role === "super_admin" ? "/admin" : user.role === "hod" ? "/hod" : "/worker"} replace />;
   }
-  return <Layout>{children}</Layout>;
+  return <Layout fullBleed={fullBleed}>{children}</Layout>;
 }
 
 function AppRouter() {
@@ -91,6 +94,21 @@ function AppRouter() {
       <Route path="/users" element={
         <ProtectedRoute roles={["super_admin", "hod"]}>
           <UsersPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/chat" element={
+        <ProtectedRoute>
+          <ChatHubPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/war-room" element={
+        <ProtectedRoute roles={["super_admin", "hod"]}>
+          <WarRoomPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/boardroom" element={
+        <ProtectedRoute roles={["super_admin", "hod", "worker"]} fullBleed={true}>
+          <BoardroomPage />
         </ProtectedRoute>
       } />
       <Route path="*" element={<Navigate to="/" replace />} />

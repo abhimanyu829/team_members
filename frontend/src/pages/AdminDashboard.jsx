@@ -3,7 +3,7 @@ import api from "@/utils/api";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from "recharts";
-import { Users, FolderKanban, CheckCircle2, AlertCircle, TrendingUp, Building2, Clock } from "lucide-react";
+import { Users, FolderKanban, CheckCircle2, AlertCircle, TrendingUp, Building2, Clock, BarChart3, Briefcase, ArrowUpRight } from "lucide-react";
 
 const STATUS_COLORS = {
   todo: "#E4E4E7",
@@ -35,7 +35,7 @@ export default function AdminDashboard() {
       setUsers(usersRes.data);
       setTasks(tasksRes.data.slice(0, 6));
       setStatusData(statusRes.data);
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   const kpiCards = kpis ? [
@@ -58,6 +58,30 @@ export default function AdminDashboard() {
           Organization Overview
         </h1>
         <p className="text-sm text-zinc-500 mt-0.5">Platform health at a glance</p>
+      </div>
+
+      {/* Enterprise Quick Access */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <a href="/boardroom" className="group bg-zinc-900 border border-zinc-800 rounded-2xl p-5 shadow-xl shadow-zinc-200/50 hover:scale-[1.01] transition-all">
+          <div className="flex items-start justify-between">
+            <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-white mb-4 group-hover:bg-indigo-600 transition-colors">
+              <BarChart3 className="w-6 h-6" />
+            </div>
+            <ArrowUpRight className="w-5 h-5 text-zinc-500 group-hover:text-white transition-colors" />
+          </div>
+          <h3 className="text-lg font-bold text-white mb-1" style={{ fontFamily: "Outfit, sans-serif" }}>Executive Boardroom</h3>
+          <p className="text-xs text-zinc-400">Monitor MRR, Burn Rate, and Financial KPIs across all departments.</p>
+        </a>
+        <a href="/war-room" className="group bg-white border border-zinc-200 rounded-2xl p-5 shadow-sm hover:shadow-lg hover:border-indigo-100 transition-all">
+          <div className="flex items-start justify-between">
+            <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 mb-4 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+              <Briefcase className="w-6 h-6" />
+            </div>
+            <ArrowUpRight className="w-5 h-5 text-zinc-300 group-hover:text-indigo-600 transition-colors" />
+          </div>
+          <h3 className="text-lg font-bold text-zinc-900 mb-1" style={{ fontFamily: "Outfit, sans-serif" }}>Ideation Point</h3>
+          <p className="text-xs text-zinc-500">Capture raw ideas, validate system architecture, and plan roadmaps.</p>
+        </a>
       </div>
 
       {/* KPI Cards */}

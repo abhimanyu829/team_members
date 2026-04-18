@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "@/utils/api";
 import { useAuth } from "@/contexts/AuthContext";
-import { FolderKanban, CheckCircle2, Clock, AlertCircle, CalendarDays, Sparkles } from "lucide-react";
+import { FolderKanban, CheckCircle2, Clock, AlertCircle, CalendarDays, Sparkles, Building2, ArrowUpRight } from "lucide-react";
 
 const STATUS_COLORS = {
   todo: "bg-zinc-100 text-zinc-600 border-zinc-200",
@@ -56,6 +56,27 @@ export default function WorkerDashboard() {
         </h1>
         <p className="text-sm text-zinc-500 mt-0.5">Here's your workspace overview</p>
       </div>
+
+      {/* Team Communication */}
+      <a href="/chat" className="flex items-center justify-between p-4 bg-white border border-zinc-200 rounded-2xl shadow-sm hover:shadow-md transition-all group">
+         <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 transition-colors group-hover:bg-indigo-600 group-hover:text-white">
+                <Building2 className="w-6 h-6" />
+            </div>
+            <div>
+                <h3 className="text-sm font-bold text-zinc-900">Communication Hub</h3>
+                <p className="text-xs text-zinc-500">Reach out to your department lead or HOD instantly.</p>
+            </div>
+         </div>
+         <div className="flex items-center gap-2">
+            <div className="flex -space-x-2">
+                {[1, 2, 3].map(i => (
+                    <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-zinc-200" />
+                ))}
+            </div>
+            <ArrowUpRight className="w-4 h-4 text-zinc-300 group-hover:text-indigo-600 transition-colors" />
+         </div>
+      </a>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

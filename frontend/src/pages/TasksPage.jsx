@@ -84,6 +84,24 @@ export default function TasksPage() {
     if (selectedTask?.task_id === taskId) setSelectedTask(null);
   };
 
+  const handleUpdateStatus = async (taskId, newStatus) => {
+    const oldStatus = selectedTask?.status;
+    // Optimistic update
+    setTasks((prev) => prev.map((t) => t.task_id === taskId ? { ...t, status: newStatus } : t));
+    if (selectedTask?.task_id === taskId) {
+      setSelectedTask((prev) => ({ ...prev, status: newStatus }));
+    }
+    try {
+      await api.put(`/api/tasks/${taskId}`, { status: newStatus });
+    } catch {
+      // Revert on error
+      setTasks((prev) => prev.map((t) => t.task_id === taskId ? { ...t, status: oldStatus } : t));
+      if (selectedTask?.task_id === taskId) {
+        setSelectedTask((prev) => ({ ...prev, status: oldStatus }));
+      }
+    }
+  };
+
   const openTask = async (task) => {
     setSelectedTask(task);
     const { data } = await api.get(`/api/tasks/${task.task_id}/comments`).catch(() => ({ data: [] }));
@@ -253,7 +271,15 @@ export default function TasksPage() {
               </div>
               <div>
                 <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">Status</p>
-                <p className="text-zinc-700 capitalize">{selectedTask.status.replace("_", " ")}</p>
+                <select
+                  value={selectedTask.status}
+                  onChange={(e) => handleUpdateStatus(selectedTask.task_id, e.target.value)}
+                  className="w-full border border-zinc-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                >
+                  {COLUMNS.map((col) => (
+                    <option key={col.id} value={col.id}>{col.label}</option>
+                  ))}
+                </select>
               </div>
             </div>
 

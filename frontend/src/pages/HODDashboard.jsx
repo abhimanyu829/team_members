@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import api from "@/utils/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { FolderKanban, CheckCircle2, Clock, AlertCircle, Users, CalendarDays, Plus, X } from "lucide-react";
+import { FolderKanban, CheckCircle2, Clock, AlertCircle, Users, CalendarDays, Plus, X, Building2, Briefcase, ArrowUpRight, TrendingUp } from "lucide-react";
 
 const STATUS_COLORS = {
   todo: "bg-zinc-100 text-zinc-600",
@@ -78,13 +78,41 @@ export default function HODDashboard() {
             {user?.department_name || "Your department"} · {members.length} members
           </p>
         </div>
-        <button
-          data-testid="create-task-button"
-          onClick={() => setShowCreateTask(true)}
-          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all"
-        >
-          <Plus className="w-4 h-4" /> New Task
-        </button>
+        <div className="flex gap-2">
+            <a href="/chat" className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-lg text-sm font-semibold border border-emerald-100 transition-all hover:bg-emerald-100">
+                <Building2 className="w-4 h-4" /> Message Team
+            </a>
+            <button
+              data-testid="create-task-button"
+              onClick={() => setShowCreateTask(true)}
+              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-lg shadow-indigo-100"
+            >
+              <Plus className="w-4 h-4" /> New Task
+            </button>
+        </div>
+      </div>
+
+      {/* Dept Strategic Links */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <a href="/war-room" className="group bg-zinc-900 border border-zinc-800 rounded-2xl p-5 shadow-sm hover:scale-[1.01] transition-all">
+          <div className="flex items-center justify-between mb-3">
+             <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-white group-hover:bg-indigo-600 transition-colors">
+                <Briefcase className="w-5 h-5" />
+             </div>
+             <ArrowUpRight className="w-4 h-4 text-zinc-600 group-hover:text-white transition-colors" />
+          </div>
+          <h3 className="text-sm font-bold text-white mb-1">Departmental Strategy</h3>
+          <p className="text-[10px] text-zinc-400">Access the War Room to view and update your department's strategic architecture.</p>
+        </a>
+        <div className="bg-white border border-zinc-100 rounded-2xl p-5 flex items-center gap-4">
+          <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 shrink-0">
+             <TrendingUp className="w-7 h-7" />
+          </div>
+          <div>
+             <h3 className="text-sm font-bold text-zinc-900 leading-tight">Optimization Engine</h3>
+             <p className="text-[10px] text-zinc-400 mt-1">Review team efficiency and bottleneck analytics for your specific unit.</p>
+          </div>
+        </div>
       </div>
 
       {/* KPI Cards */}

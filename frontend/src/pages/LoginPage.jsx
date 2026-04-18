@@ -4,19 +4,17 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatError } from "@/utils/api";
 import { Building2, ChevronRight } from "lucide-react";
 
-// REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS — BREAKS AUTH
+// Google Login is disabled when running locally/decoupled.
 const handleGoogleLogin = () => {
-  const redirectUrl = window.location.origin + "/";
-  window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+  alert("Google login is currently unavailable in stand-alone mode. Please sign in with email/password.");
 };
 
 export default function LoginPage() {
-  const { user, login, register, loading } = useAuth();
+  const { user, login, loading } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState("login");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [form, setForm] = useState({ email: "", password: "", name: "", role: "worker" });
+  const [form, setForm] = useState({ email: "", password: "" });
 
   if (!loading && user) {
     const routes = { super_admin: "/admin", hod: "/hod", worker: "/worker" };
@@ -40,31 +38,11 @@ export default function LoginPage() {
     }
   };
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setError("");
-    setBusy(true);
-    try {
-      const userData = await register(form.email, form.password, form.name, form.role);
-      const routes = { super_admin: "/admin", hod: "/hod", worker: "/worker" };
-      navigate(routes[userData.role] || "/worker", { replace: true });
-    } catch (err) {
-      setError(formatError(err));
-    } finally {
-      setBusy(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-zinc-50 flex">
       {/* Left Hero Panel */}
       <div
-        className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden"
-        style={{
-          backgroundImage: `url(https://static.prod-images.emergentagent.com/jobs/381d2b88-3470-44ef-8350-d557ffbb4421/images/31075eb99479da2e01383d85eab170a4fc20a7e0b49714353fe0085ffa7608b8.png)`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
+        className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden bg-gradient-to-br from-indigo-900 to-indigo-600"
       >
         <div className="absolute inset-0 bg-indigo-900/70" />
         <div className="relative z-10">
@@ -111,25 +89,11 @@ export default function LoginPage() {
 
           <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-8">
             <h2 className="text-2xl font-semibold text-zinc-950 mb-1" style={{ fontFamily: "Outfit, sans-serif" }}>
-              {tab === "login" ? "Welcome back" : "Create account"}
+              Welcome back
             </h2>
             <p className="text-zinc-500 text-sm mb-6">
-              {tab === "login" ? "Sign in to your workspace" : "Get started with TeamOS"}
+              Sign in to your workspace
             </p>
-
-            {/* Tab Switcher */}
-            <div className="flex bg-zinc-100 rounded-xl p-1 mb-6">
-              {["login", "register"].map((t) => (
-                <button
-                  key={t}
-                  data-testid={`auth-tab-${t}`}
-                  onClick={() => { setTab(t); setError(""); }}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${tab === t ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-500 hover:text-zinc-700"}`}
-                >
-                  {t === "login" ? "Sign In" : "Register"}
-                </button>
-              ))}
-            </div>
 
             {/* Error */}
             {error && (
@@ -138,21 +102,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form onSubmit={tab === "login" ? handleLogin : handleRegister} className="space-y-4">
-              {tab === "register" && (
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Full Name</label>
-                  <input
-                    data-testid="register-name-input"
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
-                    required
-                    placeholder="Alex Chen"
-                    className="w-full border border-zinc-200 rounded-lg px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                  />
-                </div>
-              )}
+            <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Email</label>
                 <input
@@ -179,22 +129,6 @@ export default function LoginPage() {
                   className="w-full border border-zinc-200 rounded-lg px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                 />
               </div>
-              {tab === "register" && (
-                <div>
-                  <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Role</label>
-                  <select
-                    data-testid="register-role-select"
-                    name="role"
-                    value={form.role}
-                    onChange={handleChange}
-                    className="w-full border border-zinc-200 rounded-lg px-4 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition-all"
-                  >
-                    <option value="worker">Worker</option>
-                    <option value="hod">Head of Department</option>
-                    <option value="super_admin">Super Admin</option>
-                  </select>
-                </div>
-              )}
               <button
                 data-testid="auth-submit-button"
                 type="submit"
@@ -205,7 +139,7 @@ export default function LoginPage() {
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <>
-                    {tab === "login" ? "Sign In" : "Create Account"}
+                    Sign In
                     <ChevronRight className="w-4 h-4" />
                   </>
                 )}

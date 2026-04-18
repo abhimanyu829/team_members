@@ -6,7 +6,7 @@ import CreateDepartmentModal from "@/components/CreateDepartmentModal";
 import UserProfileDrawer from "@/components/UserProfileDrawer";
 import {
   Search, Plus, Users, MoreVertical, Eye, Shield,
-  ArrowLeftRight, Loader2, Building2
+  ArrowLeftRight, Loader2, Building2, Trash2
 } from "lucide-react";
 
 const ROLE_BADGE = {
@@ -71,6 +71,17 @@ export default function UsersPage() {
     await api.put(`/api/users/${userId}/suspend`).catch(() => {});
     setUsers((u) => u.map((x) => x.user_id === userId ? { ...x, is_active: !x.is_active } : x));
     setOpenMenu(null);
+  };
+
+  const handleDelete = async (userId, userName) => {
+    setOpenMenu(null);
+    if (!window.confirm(`Are you sure you want to permanently delete "${userName}"? This action cannot be undone.`)) return;
+    try {
+      await api.delete(`/api/users/${userId}`);
+      setUsers((u) => u.filter((x) => x.user_id !== userId));
+    } catch (err) {
+      alert(err?.response?.data?.detail || "Failed to delete user.");
+    }
   };
 
   return (
@@ -219,6 +230,18 @@ export default function UsersPage() {
                               className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-purple-700 hover:bg-purple-50 transition-colors">
                               <ArrowLeftRight className="w-3.5 h-3.5" /> Transfer Dept
                             </button>
+                          )}
+                          {currentUser?.role === "super_admin" && (
+                            <>
+                              <div className="border-t border-zinc-100 my-1" />
+                              <button
+                                data-testid={`delete-user-${u.user_id}`}
+                                onClick={() => handleDelete(u.user_id, u.name)}
+                                className="w-full flex items-center gap-2 px-3 py-2.5 text-xs text-red-600 hover:bg-red-50 transition-colors font-semibold"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" /> Delete User
+                              </button>
+                            </>
                           )}
                         </div>
                       )}
