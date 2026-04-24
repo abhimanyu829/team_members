@@ -55,7 +55,7 @@ export default function Layout({ children, fullBleed = false }) {
       </div>
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
         {/* Header */}
         <header className="flex-shrink-0 bg-white border-b border-zinc-200 h-14 flex items-center justify-between px-4 lg:px-6 z-10">
           <div className="flex items-center gap-3">
@@ -126,7 +126,7 @@ export default function Layout({ children, fullBleed = false }) {
         </header>
 
         {/* Content + AI Panel */}
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-1 min-h-0 overflow-hidden">
           <main className={`flex-1 ${fullBleed ? "overflow-hidden" : "overflow-y-auto p-4 lg:p-6"}`}>
             {children}
           </main>

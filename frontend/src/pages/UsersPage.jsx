@@ -153,9 +153,9 @@ export default function UsersPage() {
           <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
         </div>
       ) : (
-        <div className="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-zinc-200 rounded-xl shadow-sm">
           {/* Table Header */}
-          <div className="hidden md:grid grid-cols-12 gap-4 px-5 py-3 bg-zinc-50 border-b border-zinc-100 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
+          <div className="hidden md:grid grid-cols-12 gap-4 px-5 py-3 bg-zinc-50 border-b border-zinc-100 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider rounded-t-xl">
             <span className="col-span-4">Member</span>
             <span className="col-span-2">Role</span>
             <span className="col-span-2">Department</span>
@@ -172,7 +172,7 @@ export default function UsersPage() {
           ) : (
             filtered.map((u) => (
               <div key={u.user_id} data-testid={`user-row-${u.user_id}`}
-                className="grid grid-cols-6 md:grid-cols-12 gap-4 px-5 py-4 border-b border-zinc-50 hover:bg-zinc-50/50 items-center transition-colors last:border-b-0">
+                className="grid grid-cols-6 md:grid-cols-12 gap-4 px-5 py-4 border-b border-zinc-50 hover:bg-zinc-50/50 items-center transition-colors last:border-b-0 last:rounded-b-xl">
                 {/* Member */}
                 <div className="col-span-4 flex items-center gap-3 min-w-0">
                   <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">

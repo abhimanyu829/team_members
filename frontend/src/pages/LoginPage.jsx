@@ -62,15 +62,15 @@ export default function LoginPage() {
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Email</label>
+                <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Email / Username</label>
                 <input
                   data-testid="auth-email-input"
                   name="email"
-                  type="email"
+                  type="text"
                   value={form.email}
                   onChange={handleChange}
                   required
-                  placeholder="you@company.com"
+                  placeholder="you@company.com or username"
                   className="w-full border border-zinc-200 rounded-lg px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                 />
               </div>

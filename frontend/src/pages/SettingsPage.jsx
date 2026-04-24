@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import api, { formatError } from "@/utils/api";
-import { User, Shield, Save, CheckCircle, Camera, Loader2, Globe, Github, Linkedin, Smartphone, MapPin } from "lucide-react";
+import { User, Shield, Save, CheckCircle, Camera, Loader2, Globe, Github, Linkedin, Smartphone, MapPin, KeyRound, AtSign, Eye, EyeOff } from "lucide-react";
 
 export default function SettingsPage() {
   const { user, checkAuth: refreshUser } = useAuth();
@@ -20,6 +20,14 @@ export default function SettingsPage() {
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(false);
 
+  // Credentials state (super_admin only)
+  const [creds, setCreds] = useState({ username: "", new_password: "", confirm_password: "" });
+  const [savingCreds, setSavingCreds] = useState(false);
+  const [savedCreds, setSavedCreds] = useState(false);
+  const [credsError, setCredsError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
   useEffect(() => {
     if (user) {
       setForm({
@@ -32,8 +40,38 @@ export default function SettingsPage() {
         address: user.address || "",
         picture: user.picture || "",
       });
+      setCreds({ username: user.username || "", new_password: "", confirm_password: "" });
     }
   }, [user]);
+
+  const handleSaveCreds = async (e) => {
+    e.preventDefault();
+    setCredsError("");
+    if (creds.new_password && creds.new_password !== creds.confirm_password) {
+      setCredsError("Passwords do not match.");
+      return;
+    }
+    if (creds.new_password && creds.new_password.length < 8) {
+      setCredsError("Password must be at least 8 characters.");
+      return;
+    }
+    const payload = {};
+    if (creds.username && creds.username !== user?.username) payload.username = creds.username;
+    if (creds.new_password) payload.password = creds.new_password;
+    if (!Object.keys(payload).length) { setCredsError("No changes to save."); return; }
+    setSavingCreds(true);
+    try {
+      await api.put(`/api/users/${user?.user_id}/update-full`, payload);
+      await refreshUser();
+      setSavedCreds(true);
+      setCreds((prev) => ({ ...prev, new_password: "", confirm_password: "" }));
+      setTimeout(() => setSavedCreds(false), 3000);
+    } catch (err) {
+      setCredsError(formatError(err));
+    } finally {
+      setSavingCreds(false);
+    }
+  };
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
@@ -131,7 +169,9 @@ export default function SettingsPage() {
               </div>
             </div>
             <p className="text-[10px] text-zinc-400 bg-zinc-50 p-2 rounded-lg leading-relaxed">
-              Username and password can only be changed by a Super Admin for security compliance.
+              {user?.role === "super_admin"
+                ? "As Super Admin, you can update your own credentials in the section below."
+                : "Username and password can only be changed by a Super Admin for security compliance."}
             </p>
           </div>
         </div>
@@ -244,6 +284,86 @@ export default function SettingsPage() {
               </button>
             </div>
           </form>
+
+          {/* ── Credentials Card (Super Admin only) ── */}
+          {user?.role === "super_admin" && (
+            <form onSubmit={handleSaveCreds} className="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-zinc-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <KeyRound className="w-4 h-4 text-indigo-500" />
+                  <h3 className="text-sm font-semibold text-zinc-900" style={{ fontFamily: "Outfit, sans-serif" }}>Account Credentials</h3>
+                </div>
+                {savedCreds && (
+                  <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                    <CheckCircle className="w-3.5 h-3.5" /> Credentials updated
+                  </span>
+                )}
+              </div>
+              <div className="p-6 space-y-5">
+                {credsError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-4 py-3">{credsError}</div>
+                )}
+                {/* Username */}
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <AtSign className="w-3.5 h-3.5" /> Username
+                  </label>
+                  <input
+                    value={creds.username}
+                    onChange={(e) => setCreds({ ...creds, username: e.target.value })}
+                    placeholder="your_username"
+                    className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <p className="text-[10px] text-zinc-400 mt-1">Current: <span className="font-mono">{user?.username || "—"}</span></p>
+                </div>
+                {/* New Password */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">New Password</label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={creds.new_password}
+                        onChange={(e) => setCreds({ ...creds, new_password: e.target.value })}
+                        placeholder="Min. 8 characters"
+                        className="w-full border border-zinc-200 rounded-lg px-3 py-2 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600">
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Confirm Password</label>
+                    <div className="relative">
+                      <input
+                        type={showConfirm ? "text" : "password"}
+                        value={creds.confirm_password}
+                        onChange={(e) => setCreds({ ...creds, confirm_password: e.target.value })}
+                        placeholder="Re-enter password"
+                        className="w-full border border-zinc-200 rounded-lg px-3 py-2 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <button type="button" onClick={() => setShowConfirm(!showConfirm)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600">
+                        {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-[10px] text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                  ⚠️ Leave password fields blank to update only your username. Changes take effect on next login.
+                </p>
+              </div>
+              <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-end">
+                <button type="submit" disabled={savingCreds}
+                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm shadow-indigo-200 disabled:opacity-60">
+                  {savingCreds ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
+                  {savingCreds ? "Updating..." : "Update Credentials"}
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     </div>
