@@ -117,8 +117,8 @@ export default function CreateUserModal({ onClose, onSuccess, defaultRole, lockD
   });
 
   const roleOptions = user?.role === "super_admin"
-    ? [{ value: "worker", label: "Worker" }, { value: "hod", label: "Head of Department" }]
-    : [{ value: "worker", label: "Worker" }];
+    ? [{ value: "worker", label: "Junior" }, { value: "hod", label: "Subsenior of Branch" }]
+    : [{ value: "worker", label: "Junior" }];
 
   const managers = users.filter((u) =>
     u.role === "hod" && (!form.department_id || u.department_id === form.department_id)

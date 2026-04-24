@@ -50,21 +50,21 @@ export default function Sidebar({ onClose }) {
   };
 
   const roleBadge = {
-    super_admin: { label: "Super Admin", color: "bg-indigo-100 text-indigo-700" },
-    hod: { label: "Head of Dept", color: "bg-emerald-100 text-emerald-700" },
-    worker: { label: "Team Member", color: "bg-zinc-100 text-zinc-600" },
+    super_admin: { label: "Supersenior", color: "bg-indigo-100 text-indigo-700" },
+    hod: { label: "Subsenior of Branch", color: "bg-emerald-100 text-emerald-700" },
+    worker: { label: "Junior", color: "bg-zinc-100 text-zinc-600" },
   };
   const badge = roleBadge[user?.role] || roleBadge.worker;
 
   return (
-    <div className="w-56 h-full bg-white border-r border-zinc-200 flex flex-col" style={{ fontFamily: "IBM Plex Sans, sans-serif" }}>
+    <div className="w-56 h-full bg-white border-r border-zinc-200 flex flex-col">
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-4 h-14 border-b border-zinc-200 flex-shrink-0">
         <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
           <Building2 className="w-4 h-4 text-white" />
         </div>
         <div>
-          <p className="font-semibold text-zinc-900 text-sm leading-tight" style={{ fontFamily: "Outfit, sans-serif" }}>TeamOS</p>
+          <p className="font-semibold text-zinc-900 text-sm leading-tight">Takshak</p>
           <p className="text-[10px] text-zinc-400 leading-tight">Enterprise</p>
         </div>
         <button className="ml-auto lg:hidden p-1 text-zinc-400 hover:text-zinc-600" onClick={onClose}>✕</button>

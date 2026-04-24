@@ -81,7 +81,7 @@ export default function AICopilot({ onClose }) {
               </div>
               <div className="bg-white rounded-xl rounded-tl-sm border border-zinc-200 px-3 py-2.5 max-w-[85%]">
                 <p className="text-sm text-zinc-700">
-                  Hi! I'm your TeamOS AI Copilot. I can help you manage tasks, summarize work, and boost productivity.
+                  Hi! I'm Takshak. I can help you manage tasks, summarize work, and boost productivity.
                   What can I help you with?
                 </p>
               </div>

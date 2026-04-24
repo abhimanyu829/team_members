@@ -1,0 +1,29 @@
+[Unit]
+Description=Takshak File Security Scanner Worker
+Documentation=file:///var/www/takshak/CLAMAV_SETUP.md
+After=network.target mongod.service redis.service clamav-daemon.service
+Requires=redis.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/takshak/backend
+ExecStart=/usr/bin/python3 /var/www/takshak/backend/scanner_worker.py
+Restart=always
+RestartSec=10
+EnvironmentFile=/var/www/takshak/backend/.env
+
+# Output to journald
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=takshak-scanner
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/www/takshak/backend/uploads
+
+[Install]
+WantedBy=multi-user.target

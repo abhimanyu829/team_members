@@ -185,7 +185,7 @@ export default function AdminDashboard() {
               <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">SA</div>
               <div>
                 <p className="text-sm font-semibold text-indigo-900">Alex Chen</p>
-                <p className="text-[10px] text-indigo-500 uppercase tracking-wide">Super Admin</p>
+                <p className="text-[10px] text-indigo-500 uppercase tracking-wide">Supersenior</p>
               </div>
             </div>
             {/* HOD Level */}
@@ -201,7 +201,7 @@ export default function AdminDashboard() {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-emerald-900">{hod.name}</p>
-                        <p className="text-[10px] text-emerald-500 uppercase tracking-wide">HOD</p>
+                        <p className="text-[10px] text-emerald-500 uppercase tracking-wide">Subsenior of Branch</p>
                       </div>
                     </div>
                     {/* Workers under this HOD */}
@@ -212,7 +212,7 @@ export default function AdminDashboard() {
                             {worker.name[0]}
                           </div>
                           <p className="text-xs text-zinc-600">{worker.name}</p>
-                          <span className="ml-auto text-[10px] text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded">Worker</span>
+                          <span className="ml-auto text-[10px] text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded">Junior</span>
                         </div>
                       ))}
                     </div>

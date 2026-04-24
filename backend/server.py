@@ -15,6 +15,7 @@ import os, uuid, bcrypt, jwt, logging, secrets, random, string, hashlib
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import requests as http_requests
+
 # Removed emergentintegrations import to make project completely independent
 
 ROOT_DIR = Path(__file__).parent
@@ -49,6 +50,13 @@ if USE_LOCAL_STORAGE:
 # ─── DATABASE ─────────────────────────────────────────────────────────────────
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
+
+
+# ─── SECURITY VALIDATOR ──────────────────────────────────────────────────────
+import sys
+sys.path.insert(0, str(Path(__file__).parent))
+from security.file_validator import validate_upload, ValidationResult
+
 
 # ─── APP ──────────────────────────────────────────────────────────────────────
 app = FastAPI(title="WorkOS Enterprise Platform")
@@ -1150,30 +1158,69 @@ async def mark_all_read(current_user: dict = Depends(auth_required)):
 # ─── FILE ROUTES ──────────────────────────────────────────────────────────────
 @api_router.post("/files/upload")
 async def upload_file(
+    request: Request,
     file: UploadFile = FastAPIFile(...),
     task_id: Optional[str] = None,
     department_id: Optional[str] = None,
     is_profile: bool = Query(False),
     current_user: dict = Depends(auth_required)
 ):
-    ext = file.filename.split(".")[-1] if "." in file.filename else "bin"
-    path = f"{APP_NAME}/uploads/{current_user['user_id']}/{uuid.uuid4()}.{ext}"
+    # ── Inline security validation (replaces ClamAV/BullMQ) ──────────────
     data = await file.read()
-    result = put_object(path, data, file.content_type or "application/octet-stream")
+    client_ip = request.client.host if request.client else "unknown"
+
+    validation = await validate_upload(
+        file_bytes=data,
+        filename=file.filename,
+        content_type=file.content_type,
+        user_id=current_user["user_id"],
+        client_ip=client_ip,
+    )
+
     file_id = f"file_{uuid.uuid4().hex[:10]}"
+
+    if not validation.passed:
+        # Store rejection record — DO NOT upload to S3
+        rejected_record = {
+            "file_id": file_id,
+            "original_filename": file.filename,
+            "content_type": file.content_type or "application/octet-stream",
+            "size": len(data),
+            "uploader_id": current_user["user_id"],
+            "uploader_name": current_user["name"],
+            "task_id": task_id,
+            "department_id": department_id or current_user.get("department_id"),
+            "is_profile": is_profile,
+            "is_deleted": False,
+            "status": "rejected",
+            "validationFlags": validation.to_mongo_flags(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        await db.files.insert_one({**rejected_record})
+        await log_file_activity(file_id, "rejected", current_user["user_id"], current_user["name"], rejected_record["department_id"], {"filename": file.filename, "reason": validation.reason})
+        raise HTTPException(status_code=422, detail={"error": "File rejected by security validation", "reason": validation.reason, "file_id": file_id})
+
+    # ── Validation passed — use safe UUID filename for storage ────────────
+    safe_filename = validation.safe_filename
+    path = f"{APP_NAME}/uploads/{current_user['user_id']}/{safe_filename}"
+    result = put_object(path, data, file.content_type or "application/octet-stream")
+
     record = {
         "file_id": file_id,
-        "storage_path": result.get("s3_key", path),   # ✅ fixed: was result["path"] (KeyError)
+        "storage_path": result.get("s3_key", path),
         "original_filename": file.filename,
+        "safe_filename": safe_filename,
         "content_type": file.content_type or "application/octet-stream",
-        "size": len(data),                             # ✅ fixed: was result.get("size") which is not returned
+        "size": len(data),
         "uploader_id": current_user["user_id"],
         "uploader_name": current_user["name"],
         "task_id": task_id,
         "department_id": department_id or current_user.get("department_id"),
         "is_profile": is_profile,
         "is_deleted": False,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "status": "approved",
+        "validationFlags": validation.to_mongo_flags(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.files.insert_one({**record})
     await log_file_activity(file_id, "uploaded", current_user["user_id"], current_user["name"], record["department_id"], {"filename": file.filename})
@@ -1235,6 +1282,8 @@ async def download_file(file_id: str, current_user: dict = Depends(auth_required
     record = await db.files.find_one({"file_id": file_id, "is_deleted": False}, {"_id": 0})
     if not record:
         raise HTTPException(404, "File not found")
+    if record.get("status") in ["pending", "rejected"]:
+        raise HTTPException(403, f"File access denied. Status: {record.get('status')}")
     content, content_type = get_object_storage(record["storage_path"])
     await log_file_activity(file_id, "downloaded", current_user["user_id"], current_user["name"], record.get("department_id"), {"filename": record["original_filename"]})
     return Response(
@@ -2543,10 +2592,21 @@ async def upload_project_file(
 ):
     try:
         content = await file.read()
+        client_ip = request.client.host if request.client else "unknown"
+
+        # ── Inline security validation ──────────────────────────────────────────
+        validation = await validate_upload(
+            file_bytes=content,
+            filename=file.filename or "unknown",
+            content_type=file.content_type,
+            user_id=current_user["user_id"],
+            client_ip=client_ip,
+        )
+        if not validation.passed:
+            raise HTTPException(status_code=422, detail={"error": "File rejected by security validation", "reason": validation.reason})
+
         file_id = f"file_{uuid.uuid4().hex[:12]}"
-        ext = os.path.splitext(file.filename)[1]
-        storage_path = f"control_room/{project_id}/{file_id}{ext}"
-        
+        storage_path = f"control_room/{project_id}/{validation.safe_filename}"
         url_info = put_object(storage_path, content, file.content_type)
         
         now = datetime.now(timezone.utc).isoformat()
@@ -2577,6 +2637,8 @@ async def upload_project_file(
             "version": version
         }
         
+        file_record["status"] = "approved"
+        file_record["validationFlags"] = validation.to_mongo_flags()
         await db.project_files.insert_one({**file_record})
         
         # Broadcast trace event
@@ -2822,6 +2884,7 @@ async def create_upload_session(data: UploadSessionCreate, current_user: dict = 
 # ─── PROXY UPLOAD (S3 Express CORS workaround) ────────────────────────────────
 @api_router.post("/assets/upload-proxy")
 async def proxy_upload_to_s3(
+    request: Request,
     file: UploadFile = FastAPIFile(...),
     session_id: str = Query(...),
     current_user: dict = Depends(auth_required)
@@ -2841,7 +2904,26 @@ async def proxy_upload_to_s3(
 
     content = await file.read()
     content_type = file.content_type or session.get("mime_type", "application/octet-stream")
+    client_ip = request.client.host if request.client else "unknown"
 
+    # ── Inline security validation ──────────────────────────────────────────
+    validation = await validate_upload(
+        file_bytes=content,
+        filename=file.filename or session.get("original_file_name", "unknown"),
+        content_type=content_type,
+        user_id=current_user["user_id"],
+        client_ip=client_ip,
+    )
+
+    if not validation.passed:
+        # Mark session as failed due to security
+        await db.upload_sessions.update_one(
+            {"session_id": session_id},
+            {"$set": {"status": "rejected_security", "validationFlags": validation.to_mongo_flags()}}
+        )
+        raise HTTPException(status_code=422, detail={"error": "File rejected by security validation", "reason": validation.reason})
+
+    # Validation passed — proceed with S3 upload
     try:
         s3_manager.upload_bytes_to_s3(session["s3_key"], content, content_type)
     except HTTPException:
@@ -2852,10 +2934,13 @@ async def proxy_upload_to_s3(
 
     await db.upload_sessions.update_one(
         {"session_id": session_id},
-        {"$set": {"status": "uploaded_proxy"}}
+        {"$set": {
+            "status": "uploaded_proxy",
+            "validationFlags": validation.to_mongo_flags()
+        }}
     )
     logger.info(f"✅ Proxy upload complete — session {session_id} → {session['s3_key']}")
-    return {"status": "uploaded", "session_id": session_id, "s3_key": session["s3_key"]}
+    return {"status": "uploaded", "session_id": session_id, "s3_key": session["s3_key"], "validationFlags": validation.to_mongo_flags()}
 
 
 
@@ -2925,8 +3010,28 @@ async def complete_multipart(session_id: str, data: MultipartCompleteRequest, cu
 
     s3_manager.complete_multipart_upload(session["s3_key"], session["upload_id"], data.parts)
 
+    # ── Inline security validation for completed multipart ──
+    try:
+        content, _ = s3_manager.get_object(session["s3_key"])
+        validation = await validate_upload(
+            file_bytes=content,
+            filename=session.get("original_file_name", "unknown"),
+            content_type=session.get("mime_type"),
+            user_id=current_user["user_id"]
+        )
+        flags = validation.to_mongo_flags()
+        if not validation.passed:
+            s3_manager.delete_object(session["s3_key"])
+            await db.upload_sessions.update_one({"session_id": session_id}, {"$set": {"status": "rejected_security"}})
+            raise HTTPException(422, f"File rejected by security validation: {validation.reason}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to validate multipart file from S3: {e}")
+        raise HTTPException(500, "Failed to validate uploaded file")
+
     # Mark session done and create file record
-    await db.upload_sessions.update_one({"session_id": session_id}, {"$set": {"status": "completed"}})
+    await db.upload_sessions.update_one({"session_id": session_id}, {"$set": {"status": "completed", "validationFlags": flags}})
 
     file_id = f"asset_{uuid.uuid4().hex[:14]}"
     now = datetime.now(timezone.utc).isoformat()
@@ -2961,9 +3066,10 @@ async def complete_multipart(session_id: str, data: MultipartCompleteRequest, cu
         "environment": session.get("environment", "development"),
         "upload_source_screen": "multipart_upload",
         "worker_task_id": None,
-        "approval_status": "pending",
+        "approval_status": "approved",
         "reviewed_by": None,
         "ai_analysis_status": "pending",
+        "validationFlags": flags,
         "retention_policy": "standard",
         "tags": session.get("tags", []),
         "comments": "",
@@ -2989,6 +3095,7 @@ async def complete_multipart(session_id: str, data: MultipartCompleteRequest, cu
         {"$set": {"is_latest_version": False}}
     )
 
+    file_record["status"] = "approved"
     await db.project_files.insert_one({**file_record})
     await write_asset_audit_log(file_id, "uploaded_multipart", current_user, {"session_id": session_id})
     await broadcast_asset_event("asset_uploaded", file_record, session["department_id"])
@@ -3039,6 +3146,26 @@ async def confirm_asset_upload(data: UploadConfirmRequest, current_user: dict = 
                 "message": "File already exists in this project (checksum match). Use versioning if this is an update."
             }
 
+    # ── Inline security validation for S3 direct uploads ──
+    flags = session.get("validationFlags")
+    if not flags:
+        try:
+            content, _ = s3_manager.get_object(session["s3_key"])
+            validation = await validate_upload(
+                file_bytes=content,
+                filename=session.get("original_file_name", "unknown"),
+                content_type=session.get("mime_type"),
+                user_id=current_user["user_id"]
+            )
+            flags = validation.to_mongo_flags()
+            if not validation.passed:
+                s3_manager.delete_object(session["s3_key"])
+                await db.upload_sessions.update_one({"session_id": data.session_id}, {"$set": {"status": "rejected_security"}})
+                raise HTTPException(422, f"File rejected by security validation: {validation.reason}")
+        except Exception as e:
+            logger.error(f"Failed to validate file from S3: {e}")
+            raise HTTPException(500, "Failed to validate uploaded file")
+
     # Find previous version for lineage
     # Fallback: older sessions stored 'file_name', newer store 'original_file_name'
     original_name = session.get("original_file_name") or session.get("file_name", "")
@@ -3084,10 +3211,10 @@ async def confirm_asset_upload(data: UploadConfirmRequest, current_user: dict = 
         "upload_mode": session.get("upload_mode") or session.get("mode", "local"),
         # ── Integrity ──────────────────────────────────────────────────────────
         "checksum": data.checksum,
-        "approval_status": "pending",
+        "approval_status": "approved",
         "reviewed_by": None,
         "ai_analysis_status": "pending",
-        "malware_scan_status": "pending",
+        "validationFlags": flags,
         # ── Versioning & Lineage ───────────────────────────────────────────────
         "version": session["version"],
         "previous_version_id": previous_version_id,
@@ -3131,6 +3258,7 @@ async def confirm_asset_upload(data: UploadConfirmRequest, current_user: dict = 
         {"$set": {"is_latest_version": False}}
     )
 
+    file_record["status"] = "approved"
     await db.project_files.insert_one({**file_record})
 
     # Version lineage record
@@ -3179,8 +3307,8 @@ async def confirm_asset_upload(data: UploadConfirmRequest, current_user: dict = 
     # WebSocket broadcast: asset_uploaded
     await broadcast_asset_event("asset_uploaded", file_record, session["department_id"])
 
-    # Malware scan trigger (hook — extend with ClamAV / Lambda for real implementation)
-    await broadcast_asset_event("asset_scan_pending", {"file_id": file_id, "s3_key": session["s3_key"]}, session["department_id"])
+    # Security validation already passed inline — file is safe and stored
+    await broadcast_asset_event("asset_approved", {"file_id": file_id, "s3_key": session["s3_key"]}, session["department_id"])
 
     return {**file_record, "_id": None, "status": "confirmed"}
 
@@ -3188,6 +3316,7 @@ async def confirm_asset_upload(data: UploadConfirmRequest, current_user: dict = 
 
 @api_router.post("/assets/upload-direct")
 async def upload_asset_direct(
+    request: Request,
     project_id: str = Query(...),
     department_id: str = Query(...),
     module_name: str = Query("General"),
@@ -3223,7 +3352,21 @@ async def upload_asset_direct(
     existing_count = await db.project_files.count_documents({"project_id": project_id, "original_file_name": file.filename})
     auto_version = max(version, existing_count + 1)
 
-    s3_key = s3_manager.build_s3_key(dept_name, project_id, module_name, current_user["role"], auto_version, file.filename)
+    # ── Inline security validation ──────────────────────────────────────────
+    client_ip = request.client.host if request.client else "unknown"
+    validation = await validate_upload(
+        file_bytes=content,
+        filename=file.filename or "unknown",
+        content_type=file.content_type,
+        user_id=current_user["user_id"],
+        client_ip=client_ip,
+    )
+
+    if not validation.passed:
+        # File rejected by security — do not upload to S3
+        raise HTTPException(status_code=422, detail={"error": "File rejected by security validation", "reason": validation.reason})
+
+    s3_key = s3_manager.build_s3_key(dept_name, project_id, module_name, current_user["role"], auto_version, validation.safe_filename)
     s3_manager.put_object_direct(s3_key, content, file.content_type or "application/octet-stream")
     signed_download_url = s3_manager.generate_presigned_get_url(s3_key)
 
@@ -3253,10 +3396,11 @@ async def upload_asset_direct(
         "signed_download_url": signed_download_url,
         "upload_mode": "s3" if s3_manager.enabled else "local",
         "checksum": checksum,
-        "approval_status": "pending",
+        "approval_status": "approved",
         "reviewed_by": None,
         "ai_analysis_status": "pending",
-        "malware_scan_status": "pending",
+        "status": "approved",
+        "validationFlags": validation.to_mongo_flags(),
         "version": auto_version,
         "previous_version_id": previous_version_id,
         "upload_timestamp": now,
@@ -3291,7 +3435,6 @@ async def upload_asset_direct(
         ]},
         {"$set": {"is_latest_version": False}}
     )
-
     await db.project_files.insert_one({**file_record})
 
     if previous_version_id:
@@ -3493,7 +3636,8 @@ async def rollback_asset(file_id: str, target_version_id: str, data: FileVersion
                 "previous_version_id": file_id,
                 "upload_timestamp": now, "created_at": now,
                 "comments": f"Rollback to v{source['version']} — {data.notes}",
-                "approval_status": "pending",
+                "approval_status": "approved",
+                "validationFlags": source.get("validationFlags"),
                 "is_latest_version": True}
     restored.pop("_id", None)
 
@@ -3508,6 +3652,7 @@ async def rollback_asset(file_id: str, target_version_id: str, data: FileVersion
         {"$set": {"is_latest_version": False}}
     )
 
+    restored["status"] = "approved"
     await db.project_files.insert_one({**restored})
     await write_asset_audit_log(new_file_id, "rollback", current_user, {"from_file_id": file_id, "target_version_id": target_version_id, "notes": data.notes})
     await broadcast_asset_event("asset_rollback", restored, source["department_id"])

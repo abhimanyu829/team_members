@@ -14,7 +14,7 @@ const ROLE_BADGE = {
   hod: "bg-emerald-100 text-emerald-700",
   worker: "bg-zinc-100 text-zinc-600",
 };
-const ROLE_LABEL = { super_admin: "Super Admin", hod: "HOD", worker: "Worker" };
+const ROLE_LABEL = { super_admin: "Supersenior", hod: "Subsenior of Branch", worker: "Junior" };
 
 export default function UsersPage() {
   const { user: currentUser } = useAuth();
@@ -62,9 +62,9 @@ export default function UsersPage() {
 
   const roleTabs = [
     { id: "all", label: "All Members", count: filtered.length },
-    ...(currentUser?.role === "super_admin" ? [{ id: "super_admin", label: "Super Admin" }] : []),
-    { id: "hod", label: "HODs" },
-    { id: "worker", label: "Workers" },
+    ...(currentUser?.role === "super_admin" ? [{ id: "super_admin", label: "Supersenior" }] : []),
+    { id: "hod", label: "Subseniors of Branch" },
+    { id: "worker", label: "Juniors" },
   ];
 
   const handleSuspend = async (userId, isActive) => {

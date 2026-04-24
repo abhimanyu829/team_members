@@ -8,11 +8,36 @@ module.exports = {
   theme: {
   	extend: {
   		borderRadius: {
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
+  			lg: '0px',
+  			md: '0px',
+  			sm: '0px'
   		},
   		colors: {
+			indigo: {
+				50: '#eff6ff',
+				100: '#dbeafe',
+				200: '#bfdbfe',
+				300: '#93c5fd',
+				400: '#60a5fa',
+				500: '#3b82f6',
+				600: '#2563eb',
+				700: '#1d4ed8',
+				800: '#1e40af',
+				900: '#1e3a8a',
+			},
+			zinc: {
+				50: '#f7f7f7',
+				100: '#ebebeb',
+				200: '#dddddd',
+				300: '#c4c4c4',
+				400: '#a3a3a3',
+				500: '#717171',
+				600: '#5e5e5e',
+				700: '#404040',
+				800: '#222222',
+				900: '#222222',
+				950: '#000000',
+			},
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

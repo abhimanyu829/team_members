@@ -117,7 +117,9 @@ export default function Layout({ children, fullBleed = false }) {
               </div>
               <div className="hidden md:block">
                 <p className="text-xs font-semibold text-zinc-900">{user?.name}</p>
-                <p className="text-[10px] text-zinc-400 capitalize">{user?.role?.replace("_", " ")}</p>
+                <p className="text-[10px] text-zinc-400 capitalize">
+                  {user?.role === "super_admin" ? "Supersenior" : user?.role === "hod" ? "Subsenior of Branch" : "Junior"}
+                </p>
               </div>
             </div>
           </div>

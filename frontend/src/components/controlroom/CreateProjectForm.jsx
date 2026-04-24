@@ -15,7 +15,7 @@ export default function CreateProjectForm({ onProjectCreated, departments, allUs
     roadmap_description: "",
     start_date: "",
     deadline: "",
-    department_id: departments.length > 0 ? departments[0].department_id : "",
+    department_id: user?.role === "hod" && user?.department_id ? user.department_id : (departments.length > 0 ? departments[0].department_id : ""),
     estimated_budget: 0,
     allocated_budget: 0,
     client_internal: "Internal",
@@ -111,7 +111,14 @@ export default function CreateProjectForm({ onProjectCreated, departments, allUs
             </div>
             <div>
               <label className="block text-xs font-bold text-zinc-600 mb-1">Target Department</label>
-              <select required name="department_id" value={formData.department_id} onChange={handleChange} className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <select 
+                required 
+                name="department_id" 
+                value={formData.department_id} 
+                onChange={handleChange} 
+                disabled={user?.role === "hod"}
+                className={`w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-lg text-sm focus:outline-none ${user?.role === "hod" ? "opacity-75 cursor-not-allowed bg-zinc-100" : "focus:ring-2 focus:ring-indigo-500"}`}
+              >
                 {departments.map(d => <option key={d.department_id} value={d.department_id}>{d.name}</option>)}
               </select>
             </div>

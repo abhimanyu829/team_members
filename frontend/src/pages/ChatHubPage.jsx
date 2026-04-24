@@ -52,9 +52,9 @@ function roleColor(role) {
   return "bg-zinc-700/60 text-zinc-300 border-zinc-600/40";
 }
 function roleLabel(role) {
-  if (role === "super_admin") return "Super Admin";
-  if (role === "hod") return "HOD";
-  return "Member";
+  if (role === "super_admin") return "Supersenior";
+  if (role === "hod") return "Subsenior of Branch";
+  return "Junior";
 }
 
 // ─── FILE MESSAGE CARD ──────────────────────────────────────────────────────

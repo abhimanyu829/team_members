@@ -11,7 +11,7 @@ const ROLE_BADGE = {
   hod: "bg-emerald-100 text-emerald-700 border-emerald-200",
   worker: "bg-zinc-100 text-zinc-600 border-zinc-200",
 };
-const ROLE_LABEL = { super_admin: "Super Admin", hod: "Head of Department", worker: "Team Member" };
+const ROLE_LABEL = { super_admin: "Supersenior", hod: "Subsenior of Branch", worker: "Junior" };
 
 export default function UserProfileDrawer({ userId, onClose, onUpdate }) {
   const { user: currentUser } = useAuth();
