@@ -1,4 +1,4 @@
-# TeamOS Workspace Management Platform
+# Takshak Workspace Management Platform
 
 TeamOS is a modern, decoupled workforce orchestration platform. It is built to run entirely autonomously without relying on external SaaS platforms (like Emergent AI) by leveraging standard, self-hosted open-source technologies.
 
