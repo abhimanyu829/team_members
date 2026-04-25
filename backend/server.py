@@ -864,7 +864,11 @@ async def login(data: UserLogin, response: Response):
     return user
 
 @api_router.post("/auth/logout")
-async def logout(response: Response):
+async def logout(request: Request, response: Response):
+    session_token = request.cookies.get("session_token")
+    if session_token:
+        await db.user_sessions.delete_one({"session_token": session_token})
+
     response.delete_cookie("access_token", path="/")
     response.delete_cookie("refresh_token", path="/")
     response.delete_cookie("session_token", path="/")
@@ -966,6 +970,11 @@ async def update_user(user_id: str, data: UserUpdate, current_user: dict = Depen
     if current_user["user_id"] != user_id and current_user["role"] != "super_admin":
         raise HTTPException(403, "Forbidden")
     update = {k: v for k, v in data.model_dump().items() if v is not None}
+
+    if current_user["role"] != "super_admin":
+        update.pop("role", None)
+        update.pop("department_id", None)
+
     if update:
         await db.users.update_one({"user_id": user_id}, {"$set": update})
     user = await db.users.find_one({"user_id": user_id}, {"_id": 0, "password_hash": 0})
@@ -2018,25 +2027,31 @@ async def create_full_user(data: FullUserCreate, current_user: dict = Depends(au
 
 @api_router.put("/users/{user_id}/update-full")
 async def update_user_full(user_id: str, data: UserUpdateFull, current_user: dict = Depends(auth_required)):
-    if current_user["user_id"] != user_id and current_user["role"] not in ["super_admin", "hod"]:
-        raise HTTPException(403, "Forbidden")
+    if current_user["user_id"] != user_id:
+        if current_user["role"] not in ["super_admin", "hod"]:
+            raise HTTPException(403, "Forbidden")
+        if current_user["role"] == "hod":
+            target_user = await db.users.find_one({"user_id": user_id})
+            if not target_user or target_user.get("department_id") != current_user.get("department_id"):
+                raise HTTPException(403, "Forbidden: Can only update users in your department")
     
     update = {k: v for k, v in data.model_dump().items() if v is not None}
     
-    # Restrict username/password/email changes to Super Admin only
-    if "username" in update or "password" in update or "email" in update:
-        if current_user["role"] != "super_admin":
-            update.pop("username", None)
-            update.pop("password", None)
-            update.pop("email", None)
-        else:
-            if "password" in update:
-                update["password_hash"] = hash_password(update.pop("password"))
-                update["is_temp_password"] = True
-            if "email" in update:
-                existing = await db.users.find_one({"email": update["email"]})
-                if existing and existing["user_id"] != user_id:
-                    raise HTTPException(400, "Email already in use")
+    # Restrict sensitive field changes
+    if current_user["role"] != "super_admin":
+        update.pop("username", None)
+        update.pop("password", None)
+        update.pop("email", None)
+        update.pop("role", None)
+        update.pop("department_id", None)
+    else:
+        if "password" in update:
+            update["password_hash"] = hash_password(update.pop("password"))
+            update["is_temp_password"] = True
+        if "email" in update:
+            existing = await db.users.find_one({"email": update["email"]})
+            if existing and existing["user_id"] != user_id:
+                raise HTTPException(400, "Email already in use")
 
     if update:
         await db.users.update_one({"user_id": user_id}, {"$set": update})
@@ -3852,6 +3867,41 @@ app.include_router(api_router)
 # ─── WEBSOCKET ────────────────────────────────────────────────────────────────
 @app.websocket("/api/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: str):
+    # Authenticate WebSocket connection
+    authenticated = False
+
+    # Check JWT access token
+    token = websocket.cookies.get("access_token")
+    if token:
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALG])
+            if payload.get("type") == "access" and payload.get("sub") == user_id:
+                user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+                if user and user.get("is_active", True):
+                    authenticated = True
+        except jwt.InvalidTokenError:
+            pass
+
+    # Check OAuth session token
+    if not authenticated:
+        session_token = websocket.cookies.get("session_token")
+        if session_token:
+            session = await db.user_sessions.find_one({"session_token": session_token}, {"_id": 0})
+            if session and session.get("user_id") == user_id:
+                exp = session.get("expires_at")
+                if isinstance(exp, str):
+                    exp = datetime.fromisoformat(exp)
+                if exp.tzinfo is None:
+                    exp = exp.replace(tzinfo=timezone.utc)
+                if exp > datetime.now(timezone.utc):
+                    user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+                    if user and user.get("is_active", True):
+                        authenticated = True
+
+    if not authenticated:
+        await websocket.close(code=1008)
+        return
+
     await manager.connect(user_id, websocket)
     try:
         while True:
