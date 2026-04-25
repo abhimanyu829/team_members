@@ -1,6 +1,6 @@
 # Takshak Workspace Management Platform
 
-TeamOS is a modern, decoupled workforce orchestration platform. It is built to run entirely autonomously without relying on external SaaS platforms (like Emergent AI) by leveraging standard, self-hosted open-source technologies.
+Takshak is a modern, decoupled workforce orchestration platform. It is built to run entirely autonomously without relying on external SaaS platforms by leveraging standard, self-hosted open-source technologies.
 
 ## Tech Stack
 -   **Frontend:** React, TailwindCSS, Radix UI components (running on port `3000`)
