@@ -4,9 +4,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import CreateUserModal from "@/components/CreateUserModal";
 import CreateDepartmentModal from "@/components/CreateDepartmentModal";
 import UserProfileDrawer from "@/components/UserProfileDrawer";
+import ManageDepartmentsModal from "@/components/ManageDepartmentsModal";
 import {
   Search, Plus, Users, MoreVertical, Eye, Shield,
-  ArrowLeftRight, Loader2, Building2, Trash2
+  ArrowLeftRight, Loader2, Building2, Trash2, Settings2
 } from "lucide-react";
 
 const ROLE_BADGE = {
@@ -27,6 +28,7 @@ export default function UsersPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [showCreate, setShowCreate] = useState(false);
   const [showCreateDept, setShowCreateDept] = useState(false);
+  const [showManageDepts, setShowManageDepts] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [openMenu, setOpenMenu] = useState(null);
 
@@ -97,10 +99,16 @@ export default function UsersPage() {
         {currentUser?.role !== "worker" && (
           <div className="flex items-center gap-2">
             {currentUser?.role === "super_admin" && (
-              <button data-testid="create-department-button" onClick={() => setShowCreateDept(true)}
-                className="flex items-center gap-2 bg-white border border-indigo-300 text-indigo-700 hover:bg-indigo-50 px-4 py-2 rounded-lg text-sm font-semibold transition-all">
-                <Building2 className="w-4 h-4" /> New Department
-              </button>
+              <>
+                <button onClick={() => setShowManageDepts(true)}
+                  className="flex items-center gap-2 bg-white border border-zinc-300 text-zinc-700 hover:bg-zinc-50 px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+                  <Settings2 className="w-4 h-4" /> Manage Depts
+                </button>
+                <button data-testid="create-department-button" onClick={() => setShowCreateDept(true)}
+                  className="flex items-center gap-2 bg-white border border-indigo-300 text-indigo-700 hover:bg-indigo-50 px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+                  <Building2 className="w-4 h-4" /> New Dept
+                </button>
+              </>
             )}
             <button data-testid="create-user-button" onClick={() => setShowCreate(true)}
               className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all">
@@ -259,6 +267,13 @@ export default function UsersPage() {
         <CreateDepartmentModal
           onClose={() => { setShowCreateDept(false); fetchData(); }}
           onSuccess={() => { fetchData(); }}
+        />
+      )}
+      {showManageDepts && (
+        <ManageDepartmentsModal
+          departments={departments}
+          onClose={() => setShowManageDepts(false)}
+          onUpdate={fetchData}
         />
       )}
       {showCreate && (

@@ -21,7 +21,7 @@ export default function SettingsPage() {
   const [uploading, setUploading] = useState(false);
 
   // Credentials state (super_admin only)
-  const [creds, setCreds] = useState({ username: "", new_password: "", confirm_password: "" });
+  const [creds, setCreds] = useState({ username: "", email: "", new_password: "", confirm_password: "" });
   const [savingCreds, setSavingCreds] = useState(false);
   const [savedCreds, setSavedCreds] = useState(false);
   const [credsError, setCredsError] = useState("");
@@ -40,7 +40,7 @@ export default function SettingsPage() {
         address: user.address || "",
         picture: user.picture || "",
       });
-      setCreds({ username: user.username || "", new_password: "", confirm_password: "" });
+      setCreds({ username: user.username || "", email: user.email || "", new_password: "", confirm_password: "" });
     }
   }, [user]);
 
@@ -57,6 +57,7 @@ export default function SettingsPage() {
     }
     const payload = {};
     if (creds.username && creds.username !== user?.username) payload.username = creds.username;
+    if (creds.email && creds.email !== user?.email) payload.email = creds.email;
     if (creds.new_password) payload.password = creds.new_password;
     if (!Object.keys(payload).length) { setCredsError("No changes to save."); return; }
     setSavingCreds(true);
@@ -316,6 +317,20 @@ export default function SettingsPage() {
                   />
                   <p className="text-[10px] text-zinc-400 mt-1">Current: <span className="font-mono">{user?.username || "—"}</span></p>
                 </div>
+                {/* Email */}
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <AtSign className="w-3.5 h-3.5" /> Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={creds.email}
+                    onChange={(e) => setCreds({ ...creds, email: e.target.value })}
+                    placeholder="your.email@example.com"
+                    className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <p className="text-[10px] text-zinc-400 mt-1">Current: <span className="font-mono">{user?.email || "—"}</span></p>
+                </div>
                 {/* New Password */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -352,7 +367,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <p className="text-[10px] text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
-                  ⚠️ Leave password fields blank to update only your username. Changes take effect on next login.
+                  ⚠️ Leave password fields blank to update only your username or email. Changes take effect on next login.
                 </p>
               </div>
               <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-100 flex items-center justify-end">

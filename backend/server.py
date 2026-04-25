@@ -649,6 +649,7 @@ class UserUpdateFull(BaseModel):
     emergency_contact: Optional[str] = None
     username: Optional[str] = None
     password: Optional[str] = None
+    email: Optional[str] = None
 
 class TransferWorker(BaseModel):
     new_department_id: str
@@ -2022,15 +2023,20 @@ async def update_user_full(user_id: str, data: UserUpdateFull, current_user: dic
     
     update = {k: v for k, v in data.model_dump().items() if v is not None}
     
-    # Restrict username/password changes to Super Admin only
-    if "username" in update or "password" in update:
+    # Restrict username/password/email changes to Super Admin only
+    if "username" in update or "password" in update or "email" in update:
         if current_user["role"] != "super_admin":
             update.pop("username", None)
             update.pop("password", None)
+            update.pop("email", None)
         else:
             if "password" in update:
                 update["password_hash"] = hash_password(update.pop("password"))
                 update["is_temp_password"] = True
+            if "email" in update:
+                existing = await db.users.find_one({"email": update["email"]})
+                if existing and existing["user_id"] != user_id:
+                    raise HTTPException(400, "Email already in use")
 
     if update:
         await db.users.update_one({"user_id": user_id}, {"$set": update})
