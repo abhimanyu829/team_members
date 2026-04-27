@@ -1,0 +1,3 @@
+## 2024-05-15 - Missing Accessible Labels on Icon-only Buttons
+**Learning:** Discovered a recurring accessibility issue pattern across multiple pages (e.g., TasksPage, FilesPage, ChatHubPage) where icon-only buttons (specifically using the Lucide `<X />` component for close/delete actions) are implemented without `aria-label` attributes or visible tooltips. This prevents screen reader users from understanding the button's purpose.
+**Action:** When working with or reviewing icon-only buttons in this design system, ensure that an `aria-label` (and optionally a `title` for hover tooltips) is always provided.

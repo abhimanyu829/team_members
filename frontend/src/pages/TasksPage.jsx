@@ -198,6 +198,8 @@ export default function TasksPage() {
                           onClick={(e) => { e.stopPropagation(); handleDeleteTask(task.task_id); }}
                           className="text-zinc-300 hover:text-red-400 flex-shrink-0 transition-colors"
                           data-testid={`delete-task-${task.task_id}`}
+                          aria-label="Delete task"
+                          title="Delete task"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -246,7 +248,7 @@ export default function TasksPage() {
               <span className={`text-xs font-semibold px-2 py-1 rounded border ${PRIORITY_STYLE[selectedTask.priority]}`}>
                 {selectedTask.priority}
               </span>
-              <button onClick={() => setSelectedTask(null)} className="p-1 rounded-lg hover:bg-zinc-100">
+              <button onClick={() => setSelectedTask(null)} className="p-1 rounded-lg hover:bg-zinc-100" aria-label="Close task details" title="Close">
                 <X className="w-4 h-4 text-zinc-400" />
               </button>
             </div>
@@ -330,7 +332,7 @@ export default function TasksPage() {
           <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-semibold text-zinc-900" style={{ fontFamily: "Outfit, sans-serif" }}>Create New Task</h3>
-              <button onClick={() => setShowCreate(false)} className="p-1 rounded-lg hover:bg-zinc-100"><X className="w-4 h-4 text-zinc-400" /></button>
+              <button onClick={() => setShowCreate(false)} className="p-1 rounded-lg hover:bg-zinc-100" aria-label="Close modal" title="Close"><X className="w-4 h-4 text-zinc-400" /></button>
             </div>
             <form onSubmit={handleCreateTask} className="space-y-4">
               <div>
