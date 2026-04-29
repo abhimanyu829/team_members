@@ -63,6 +63,7 @@ export default function Layout({ children, fullBleed = false }) {
               className="lg:hidden p-2 rounded-lg hover:bg-zinc-100 transition-colors"
               onClick={() => setSidebarOpen(true)}
               data-testid="mobile-menu-button"
+              aria-label="Open menu"
             >
               <div className="w-5 h-0.5 bg-zinc-600 mb-1" />
               <div className="w-5 h-0.5 bg-zinc-600 mb-1" />
@@ -91,6 +92,7 @@ export default function Layout({ children, fullBleed = false }) {
                 data-testid="notifications-button"
                 onClick={() => { setShowNotifs(!showNotifs); if (!showNotifs) fetchUnreadCount(); }}
                 className="relative p-2 rounded-lg hover:bg-zinc-100 transition-colors"
+                aria-label="Notifications"
               >
                 <Bell className="w-5 h-5 text-zinc-600" />
                 {notifCount > 0 && (

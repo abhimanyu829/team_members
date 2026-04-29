@@ -67,7 +67,7 @@ export default function Sidebar({ onClose }) {
           <p className="font-semibold text-zinc-900 text-sm leading-tight">Takshak</p>
           <p className="text-[10px] text-zinc-400 leading-tight">Enterprise</p>
         </div>
-        <button className="ml-auto lg:hidden p-1 text-zinc-400 hover:text-zinc-600" onClick={onClose}>✕</button>
+        <button className="ml-auto lg:hidden p-1 text-zinc-400 hover:text-zinc-600" onClick={onClose} aria-label="Close menu">✕</button>
       </div>
 
       {/* Nav */}
