@@ -55,7 +55,7 @@ export default function NotificationsPanel({ onClose, onRead }) {
               Mark all read
             </button>
           )}
-          <button onClick={onClose} className="p-1 rounded hover:bg-zinc-100 transition-colors">
+          <button onClick={onClose} className="p-1 rounded hover:bg-zinc-100 transition-colors" aria-label="Close notifications">
             <X className="w-3.5 h-3.5 text-zinc-400" />
           </button>
         </div>
@@ -94,6 +94,7 @@ export default function NotificationsPanel({ onClose, onRead }) {
                   onClick={() => markRead(n.notification_id)}
                   className="flex-shrink-0 p-1 rounded hover:bg-indigo-100 text-indigo-500 transition-colors"
                   title="Mark as read"
+                  aria-label="Mark as read"
                 >
                   <Check className="w-3.5 h-3.5" />
                 </button>
