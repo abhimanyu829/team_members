@@ -1,0 +1,3 @@
+## 2024-05-24 - Add ARIA labels to app shell icon-only buttons
+**Learning:** Found multiple icon-only buttons in the core app shell (Layout, Sidebar, NotificationsPanel) missing accessible names, which prevents screen readers from announcing their purpose. Even core components often get overlooked for basic accessibility. Adding dynamic ARIA labels (e.g. notifications with unread counts) provides rich context for assistive technologies.
+**Action:** Always verify icon-only buttons (like those wrapping a single icon component) have an `aria-label` attribute, especially in globally reused navigational components like sidebars, layouts, and panels. If a button's state changes (like unread notifications), the `aria-label` should dynamically reflect that state.
