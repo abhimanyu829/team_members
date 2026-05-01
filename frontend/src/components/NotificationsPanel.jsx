@@ -55,7 +55,7 @@ export default function NotificationsPanel({ onClose, onRead }) {
               Mark all read
             </button>
           )}
-          <button onClick={onClose} className="p-1 rounded hover:bg-zinc-100 transition-colors">
+          <button onClick={onClose} className="p-1 rounded hover:bg-zinc-100 transition-colors" aria-label="Close notifications panel">
             <X className="w-3.5 h-3.5 text-zinc-400" />
           </button>
         </div>
