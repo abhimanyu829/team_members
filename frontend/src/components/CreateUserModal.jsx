@@ -224,23 +224,23 @@ export default function CreateUserModal({ onClose, onSuccess, defaultRole, lockD
                     </div>
                   </div>
                   <div className="col-span-2 md:col-span-1">
-                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Full Name *</label>
-                    <input data-testid="user-name-input" required value={form.full_name}
+                    <label htmlFor="full_name" className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Full Name *</label>
+                    <input id="full_name" data-testid="user-name-input" required value={form.full_name}
                       onChange={(e) => set("full_name", e.target.value)} placeholder="John Doe"
                       className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Email *</label>
-                    <input data-testid="user-email-input" required type="email" value={form.email}
+                    <label htmlFor="email" className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Email *</label>
+                    <input id="email" data-testid="user-email-input" required type="email" value={form.email}
                       onChange={(e) => set("email", e.target.value)} placeholder="john@company.com"
                       className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Username</label>
+                    <label htmlFor="username" className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Username</label>
                     <div className="flex gap-2">
-                      <input value={form.username} onChange={(e) => set("username", e.target.value)} placeholder="auto-suggested"
+                      <input id="username" value={form.username} onChange={(e) => set("username", e.target.value)} placeholder="auto-suggested"
                         className="flex-1 border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                       <button type="button" onClick={() => set("username", genUsername(form.full_name || "user"))}
@@ -250,10 +250,10 @@ export default function CreateUserModal({ onClose, onSuccess, defaultRole, lockD
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Temp Password</label>
+                    <label htmlFor="temp_password" className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Temp Password</label>
                     <div className="flex gap-2">
                       <div className="flex-1 relative">
-                        <input type={showPassword ? "text" : "password"} value={form.temp_password}
+                        <input id="temp_password" type={showPassword ? "text" : "password"} value={form.temp_password}
                           onChange={(e) => set("temp_password", e.target.value)}
                           className="w-full border border-zinc-200 rounded-lg px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
@@ -269,16 +269,16 @@ export default function CreateUserModal({ onClose, onSuccess, defaultRole, lockD
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Role</label>
-                    <select value={form.role} onChange={(e) => set("role", e.target.value)}
+                    <label htmlFor="role" className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Role</label>
+                    <select id="role" value={form.role} onChange={(e) => set("role", e.target.value)}
                       disabled={!!defaultRole || user?.role === "hod"}
                       className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white disabled:bg-zinc-50 disabled:text-zinc-400">
                       {roleOptions.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Department</label>
-                    <select value={form.department_id} onChange={(e) => set("department_id", e.target.value)}
+                    <label htmlFor="department_id" className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Department</label>
+                    <select id="department_id" value={form.department_id} onChange={(e) => set("department_id", e.target.value)}
                       disabled={!!lockDept}
                       className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white disabled:bg-zinc-50 disabled:text-zinc-400">
                       <option value="">Select department</option>
@@ -292,34 +292,34 @@ export default function CreateUserModal({ onClose, onSuccess, defaultRole, lockD
               {tab === "professional" && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Employee ID</label>
-                    <input value={form.employee_id} onChange={(e) => set("employee_id", e.target.value)} placeholder="EMP0001"
+                    <label htmlFor="employee_id" className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Employee ID</label>
+                    <input id="employee_id" value={form.employee_id} onChange={(e) => set("employee_id", e.target.value)} placeholder="EMP0001"
                       className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Professional Title</label>
-                    <input value={form.professional_title} onChange={(e) => set("professional_title", e.target.value)} placeholder="Senior Developer"
+                    <label htmlFor="professional_title" className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Professional Title</label>
+                    <input id="professional_title" value={form.professional_title} onChange={(e) => set("professional_title", e.target.value)} placeholder="Senior Developer"
                       className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Reporting Manager</label>
-                    <select value={form.reporting_manager_id} onChange={(e) => set("reporting_manager_id", e.target.value)}
+                    <label htmlFor="reporting_manager_id" className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Reporting Manager</label>
+                    <select id="reporting_manager_id" value={form.reporting_manager_id} onChange={(e) => set("reporting_manager_id", e.target.value)}
                       className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
                       <option value="">Select manager</option>
                       {managers.map((m) => <option key={m.user_id} value={m.user_id}>{m.name}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Joining Date</label>
-                    <input type="date" value={form.joining_date} onChange={(e) => set("joining_date", e.target.value)}
+                    <label htmlFor="joining_date" className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Joining Date</label>
+                    <input id="joining_date" type="date" value={form.joining_date} onChange={(e) => set("joining_date", e.target.value)}
                       className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Experience Level</label>
-                    <select value={form.experience_level} onChange={(e) => set("experience_level", e.target.value)}
+                    <label htmlFor="experience_level" className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Experience Level</label>
+                    <select id="experience_level" value={form.experience_level} onChange={(e) => set("experience_level", e.target.value)}
                       className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
                       <option value="junior">Junior (0-2 years)</option>
                       <option value="mid">Mid-level (2-5 years)</option>
@@ -328,8 +328,8 @@ export default function CreateUserModal({ onClose, onSuccess, defaultRole, lockD
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Employment Type</label>
-                    <select value={form.employment_type} onChange={(e) => set("employment_type", e.target.value)}
+                    <label htmlFor="employment_type" className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Employment Type</label>
+                    <select id="employment_type" value={form.employment_type} onChange={(e) => set("employment_type", e.target.value)}
                       className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
                       <option value="full_time">Full-time</option>
                       <option value="part_time">Part-time</option>
@@ -338,15 +338,15 @@ export default function CreateUserModal({ onClose, onSuccess, defaultRole, lockD
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Shift Timing</label>
-                    <input value={form.shift_timing} onChange={(e) => set("shift_timing", e.target.value)} placeholder="9 AM – 5 PM"
+                    <label htmlFor="shift_timing" className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Shift Timing</label>
+                    <input id="shift_timing" value={form.shift_timing} onChange={(e) => set("shift_timing", e.target.value)} placeholder="9 AM – 5 PM"
                       className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Skills</label>
+                    <label htmlFor="skillInput" className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Skills</label>
                     <div className="flex gap-2 mb-2">
-                      <input value={skillInput} onChange={(e) => setSkillInput(e.target.value)}
+                      <input id="skillInput" value={skillInput} onChange={(e) => setSkillInput(e.target.value)}
                         onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSkill(); } }}
                         placeholder="Type skill + Enter"
                         className="flex-1 border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -367,8 +367,8 @@ export default function CreateUserModal({ onClose, onSuccess, defaultRole, lockD
                     )}
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Bio / About</label>
-                    <textarea value={form.bio} onChange={(e) => set("bio", e.target.value)} rows={2} placeholder="Brief bio..."
+                    <label htmlFor="bio" className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Bio / About</label>
+                    <textarea id="bio" value={form.bio} onChange={(e) => set("bio", e.target.value)} rows={2} placeholder="Brief bio..."
                       className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
                     />
                   </div>
@@ -386,8 +386,8 @@ export default function CreateUserModal({ onClose, onSuccess, defaultRole, lockD
                     { k: "portfolio_url", label: "Portfolio / Website", placeholder: "https://yoursite.com" },
                   ].map(({ k, label, placeholder }) => (
                     <div key={k} className={k === "portfolio_url" ? "col-span-2" : ""}>
-                      <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">{label}</label>
-                      <input value={form[k]} onChange={(e) => set(k, e.target.value)} placeholder={placeholder}
+                      <label htmlFor={k} className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">{label}</label>
+                      <input id={k} value={form[k]} onChange={(e) => set(k, e.target.value)} placeholder={placeholder}
                         className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
@@ -399,26 +399,26 @@ export default function CreateUserModal({ onClose, onSuccess, defaultRole, lockD
               {tab === "personal" && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Mobile Number</label>
-                    <input value={form.mobile_number} onChange={(e) => set("mobile_number", e.target.value)} placeholder="+1 555-0100"
+                    <label htmlFor="mobile_number" className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Mobile Number</label>
+                    <input id="mobile_number" value={form.mobile_number} onChange={(e) => set("mobile_number", e.target.value)} placeholder="+1 555-0100"
                       className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Emergency Contact</label>
-                    <input value={form.emergency_contact} onChange={(e) => set("emergency_contact", e.target.value)} placeholder="Name: +1 555-0200"
+                    <label htmlFor="emergency_contact" className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Emergency Contact</label>
+                    <input id="emergency_contact" value={form.emergency_contact} onChange={(e) => set("emergency_contact", e.target.value)} placeholder="Name: +1 555-0200"
                       className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Address</label>
-                    <input value={form.address} onChange={(e) => set("address", e.target.value)} placeholder="123 Main St, City, Country"
+                    <label htmlFor="address" className="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1.5">Address</label>
+                    <input id="address" value={form.address} onChange={(e) => set("address", e.target.value)} placeholder="123 Main St, City, Country"
                       className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={form.is_active} onChange={(e) => set("is_active", e.target.checked)}
+                    <label htmlFor="is_active" className="flex items-center gap-2 cursor-pointer">
+                      <input id="is_active" type="checkbox" checked={form.is_active} onChange={(e) => set("is_active", e.target.checked)}
                         className="rounded text-indigo-600 focus:ring-indigo-500"
                       />
                       <span className="text-sm font-medium text-zinc-700">Activate account immediately</span>
