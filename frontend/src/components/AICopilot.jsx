@@ -62,7 +62,7 @@ export default function AICopilot({ onClose }) {
             <p className="text-[10px] text-zinc-400">Claude Sonnet</p>
           </div>
         </div>
-        <button onClick={onClose} data-testid="ai-copilot-close" className="p-1 rounded hover:bg-zinc-100 transition-colors">
+        <button aria-label="Close AI Copilot" onClick={onClose} data-testid="ai-copilot-close" className="p-1 rounded hover:bg-zinc-100 transition-colors">
           <X className="w-4 h-4 text-zinc-400" />
         </button>
       </div>
@@ -152,6 +152,7 @@ export default function AICopilot({ onClose }) {
             className="flex-1 text-sm border border-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all placeholder:text-zinc-400"
           />
           <button
+            aria-label="Send message"
             data-testid="ai-chat-send"
             type="submit"
             disabled={!input.trim() || loading}
