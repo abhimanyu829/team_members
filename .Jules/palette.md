@@ -1,0 +1,3 @@
+## 2024-05-18 - Missing Utility Button ARIA Labels
+**Learning:** Utility buttons used within forms (such as auto-generate username/password, toggle password visibility, and adding/removing dynamic list items like skills) frequently omit explicit ARIA labels when relying entirely on icons (e.g. from Lucide React). This renders the core interactive functionality hidden to screen readers and confuses standard users when tooltips are absent.
+**Action:** Audit all form components with inline utility actions. Always attach an `aria-label` and `title` to `<button>` elements that only contain an `<Icon />` tag to ensure accessible form navigation.
